@@ -209,7 +209,7 @@ ProductionAreas <- Template
 ProductionAreas <- terra::ifel(Subclasses %in% c("Drevet Skov", "INT_AGG", "PGR_out_of_P3"), 1, 0)
 ```
 
-We then add the Buildup that we read at the beggining of this document.
+We then add the Buildup that we read at the begining of this document.
 
 ``` r
 ProductionAreas <- terra::ifel(!is.na(Subclasses) & BuildUp == 0, 1, ProductionAreas)
@@ -224,6 +224,101 @@ levels(ProductionAreas) <- cls
 SpeciesPoolR::write_cog(ProductionAreas, "FinalLayers/ProductionAreas.tif")
 ```
 
-## Insuffient legal protection
+## Insufficient legal protection
+
+Areas under protection schemes that do not meet the criteria for
+long-term legal protection (Criterion C1) or other key criteria (C2–C5)
+are classified as having **insufficient legal protection**.
+
+On land, this primarily concerns **private Article 3 areas**, where:
+
+- long-term protection is not secured, and
+- there are no management requirements preventing habitat changes that
+  would undermine biodiversity values (e.g. succession from open
+  habitats to forest).
+
+To operationalise this, we identify areas that:
+
+1.  are covered by **exactly one** protection scheme,
+2.  fall under the **Article 3** protection scheme, and
+3.  are on **privately owned** land.
+
+Pixels meeting all three conditions form the “insufficient legal
+protection” category (yellow in Fig. 1).
+
+### Identifying private Article 3 areas with a single protection scheme
+
+First, we read a raster that records how many protection schemes apply
+to each pixel:
+
+``` r
+NumberOfProtections <- terra::rast("Data/Rast_NumberOfProtections_Croped.tif")
+
+# Keep only pixels with exactly one protection scheme; reclassify others to 0
+NumberOfProtections <- terra::ifel(NumberOfProtections != 1, 0, NumberOfProtections)
+```
+
+Next, we read the Article 3 protection raster. In our case this layer is
+stored on a shared drive; the path should be adapted to your local
+setup. We convert it to a binary layer where 1 indicates Article 3
+protection and 0 indicates “unknown” or lakes.
+
+``` r
+P3 <- terra::rast("Data/Rast_p3_Croped.tif")
+P3 <- as.numeric(P3)
+
+# Remove both unknown (ukendt) and lakes (Soer):
+# 0–3, 5  = Article 3 categories kept as 1
+# 4, 6    = set to 0 (e.g. lakes, unknown)
+P3 <- terra::ifel(P3 %in% c(0:3, 5), 1, P3)
+P3 <- terra::ifel(P3 %in% c(4, 6), 0, P3)
+P3 <- terra::ifel(is.na(P3), 0, P3)
+```
+
+We then read in the ownership data, convert it to a binary “private
+vs. other” layer, and resample it to match the resolution and extent of
+the Article 3 raster:
+
+``` r
+Ownership <- terra::rast("Data/Ownership2025.tif")
+Ownership <- as.numeric(Ownership)
+
+# Keep only private areas (Ownership == 1)
+Private <- Ownership
+Private <- terra::ifel(Private == 1, 1, 0)
+
+# Align to the P3 raster
+Private <- terra::resample(Private, P3, method = "near")
+```
+
+Finally, we multiply the three binary layers to obtain areas that:
+
+- are only protected by a single scheme (NumberOfProtections == 1),
+- are Article 3 areas (P3 == 1), and
+- are privately owned (Private == 1).
+
+These pixels are then masked to the Denmark polygon and labelled:
+
+``` r
+Private_P3 <- Private * P3 * NumberOfProtections
+
+# Consider only pixels within Denmark
+Private_P3 <- terra::mask(Private_P3, DK)
+
+cls <- data.frame(
+  id         = 0:1,
+  Protection = c("other", stringr::str_wrap("Insufficient legal protection", 10))
+)
+levels(Private_P3) <- cls
+```
+
+We save this layer as a Cloud Optimised GeoTIFF:
+
+``` r
+SpeciesPoolR::write_cog(Private_P3, "FinalLayers/InsufficientLegalProtection.tif")
+```
+
+This layer corresponds to the **yellow category** (“Insufficient legal
+protection”) in Fig. 1 of the manuscript.
 
 ## Requires individual assesment
