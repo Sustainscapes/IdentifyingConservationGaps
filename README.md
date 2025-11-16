@@ -60,6 +60,20 @@ Area_DK <- terra::expanse(DK, unit = "km")
 
 Which is 43,144.85 square kilometers.
 
+## Build up
+
+In many of the layers we need to correct using buildup, which was
+extracted from the landcover layer in
+[basemap](envs.au.dk/en/research-areas/society-environment-and-resources/land-use-and-gis/basemap)
+
+Here, `BuildUp` is a raster where 0 = built-up (infrastructure, urban
+areas), 1 = other land. This raster is prepared in the data
+pre-processing steps (not shown here).
+
+``` r
+BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
+```
+
 ## Protected areas contributing to the 30% target
 
 In the manuscript, areas that **fully contribute** to the 30% land
@@ -142,12 +156,7 @@ PA30 <- terra::ifel(PA30 == 0, NA, PA30)
 We then remove built-up areas and mask the result to the terrestrial
 area of Denmark.
 
-Here, `BuildUp` is a raster where 0 = built-up (infrastructure, urban
-areas), 1 = other land. This raster is prepared in the data
-pre-processing steps (not shown here).
-
 ``` r
-BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
 PA30 <- terra::ifel(BuildUp == 0, NA, PA30)
 
 levels(PA30) <- cls
@@ -164,7 +173,56 @@ SpeciesPoolR::write_cog(PA30, "FinalLayers/PA30.tif")
 This layer corresponds to the **turquoise category** (“Protected areas
 that fully meet the criteria”) in Fig. 1 of the manuscript.
 
-## Production Areas
+## Production areas (areas compromising biodiversity)
+
+In Fig. 1, areas where biodiversity is directly compromised by human
+land uses (e.g. intensive agriculture, production forestry,
+infrastructure) are shown in **orange** (“Areas compromised by
+infrastructure, forestry, or agriculture”).
+
+These areas are identified by combining:
+
+- agricultural land (fields in rotation and permanent grasslands not
+  covered by Article 3 protection),
+- production forest (tree-covered areas not designated as unmanaged
+  forest or Article 3 areas), and
+- infrastructure (roads, buildings and other built-up areas).
+
+In the analysis pipeline, these inputs are assembled into a raster layer
+where pixels used primarily for these land uses are flagged as
+**compromised** and subsequently excluded from contributing to the 30%
+target. The resulting raster is then used to derive the orange category
+in Fig. 1.
+
+### Reading the layers in
+
+We have a layer (subclasses) that has among its categories fields in
+rotation (INT_AGG), grasslands not covered by Article 3 protection
+(“PGR_out_of_P3”) and production forest (Drevet Skov), we fuse this
+classes into one layer
+
+``` r
+Subclasses<- rast("Data/Subclasses.tif")
+
+ProductionAreas <- Template
+
+ProductionAreas <- terra::ifel(Subclasses %in% c("Drevet Skov", "INT_AGG", "PGR_out_of_P3"), 1, 0)
+```
+
+We then add the Buildup that we read at the beggining of this document.
+
+``` r
+ProductionAreas <- terra::ifel(!is.na(Subclasses) & BuildUp == 0, 1, ProductionAreas)
+
+ProductionAreas <- terra::mask(ProductionAreas, DK)
+
+cls <- data.frame(id=0:1, Protection=c("other",stringr::str_wrap("Production areas", 10)))
+levels(ProductionAreas) <- cls
+```
+
+``` r
+SpeciesPoolR::write_cog(ProductionAreas, "FinalLayers/ProductionAreas.tif")
+```
 
 ## Insuffient legal protection
 

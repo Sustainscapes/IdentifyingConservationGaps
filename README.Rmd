@@ -66,6 +66,20 @@ Area_DK <- terra::expanse(DK, unit = "km")
 
 Which is `r prettyNum((round(Area_DK, 2)), big.mark = ",")` square kilometers.
 
+## Build up
+
+In many of the layers we need to correct using buildup, which was extracted from the landcover layer in [basemap](envs.au.dk/en/research-areas/society-environment-and-resources/land-use-and-gis/basemap)
+
+Here, `BuildUp` is a raster where
+0 = built-up (infrastructure, urban areas),
+1 = other land.
+This raster is prepared in the data pre-processing steps (not shown here).
+
+```{r readinBuildup}
+BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
+```
+
+
 
 ## Protected areas contributing to the 30% target
 
@@ -85,7 +99,7 @@ We read the raster of approved Nature National Parks and convert it to a binary 
 0 = not an approved Nature National Park,
 1 = approved Nature National Park.
 
-```{r readInNatureNationalParks}
+```{r readInNatureNationalParks, eval=FALSE}
 NNP_approved <- as.numeric(terra::rast("Data/Rast_Nature_National_Parks_Croped.tif")) + 1
 NNP_approved <- terra::ifel(is.na(NNP_approved), 0, NNP_approved)
 ```
@@ -97,7 +111,7 @@ Similarly, we read the raster of areas owned by private nature foundations (`Fon
 0 = not foundation-owned,
 10 = foundation-owned.
 
-```{r readInPrivateFundations}
+```{r readInPrivateFundations, eval=FALSE}
 Fondsejede <- as.numeric(terra::rast("Data/Rast_Fondsejede_Croped.tif")) + 10
 Fondsejede <- terra::ifel(is.na(Fondsejede), 0, Fondsejede)
 ```
@@ -110,7 +124,7 @@ We then read the raster of state-owned unmanaged / untouched forests (`UroertSko
 100 = unmanaged / untouched forest.
 
 
-```{r readInUntouchedForests}
+```{r readInUntouchedForests, eval=FALSE}
 UroertSkov_NST <- as.numeric(terra::rast("Data/Rast_Urort_Skov_Croped.tif")) + 99
 UroertSkov_NST <- terra::ifel(is.na(UroertSkov_NST), 0, UroertSkov_NST)
 ```
@@ -119,7 +133,7 @@ UroertSkov_NST <- terra::ifel(is.na(UroertSkov_NST), 0, UroertSkov_NST)
 
 We now add the three layers to obtain a **composite raster** `PA30`, where the value of each pixel uniquely identifies which combination of schemes covers that pixel.
 
-```{r CombineThem}
+```{r CombineThem, eval=FALSE}
 PA30 <- NNP_approved + Fondsejede + UroertSkov_NST
 
 cls <- data.frame(
@@ -138,13 +152,8 @@ PA30 <- terra::ifel(PA30 == 0, NA, PA30)
 
 We then remove built-up areas and mask the result to the terrestrial area of Denmark.
 
-Here, `BuildUp` is a raster where
-0 = built-up (infrastructure, urban areas),
-1 = other land.
-This raster is prepared in the data pre-processing steps (not shown here).
 
-```{r CorrectBuildup}
-BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
+```{r CorrectBuildup, eval=FALSE}
 PA30 <- terra::ifel(BuildUp == 0, NA, PA30)
 
 levels(PA30) <- cls
@@ -154,14 +163,53 @@ PA30 <- terra::mask(PA30, DK)
 
 Finally, we save the composite layer as a Cloud Optimised GeoTIFF:
 
-```{r SavePA30}
+```{r SavePA30, eval=FALSE}
 SpeciesPoolR::write_cog(PA30, "FinalLayers/PA30.tif")
 ```
 
 This layer corresponds to the **turquoise category** (“Protected areas that fully meet the criteria”) in Fig. 1 of the manuscript.
 
+## Production areas (areas compromising biodiversity)
 
-## Production Areas
+In Fig. 1, areas where biodiversity is directly compromised by human land uses (e.g. intensive agriculture, production forestry, infrastructure) are shown in **orange** (“Areas compromised by infrastructure, forestry, or agriculture”).
+
+These areas are identified by combining:
+
+* agricultural land (fields in rotation and permanent grasslands not covered by Article 3 protection),
+* production forest (tree-covered areas not designated as unmanaged forest or Article 3 areas), and
+* infrastructure (roads, buildings and other built-up areas).
+
+In the analysis pipeline, these inputs are assembled into a raster layer where pixels used primarily for these land uses are flagged as **compromised** and subsequently excluded from contributing to the 30% target. The resulting raster is then used to derive the orange category in Fig. 1.
+
+### Reading the layers in 
+
+We have a layer (subclasses) that has among its categories fields in rotation (INT_AGG), grasslands not covered by Article 3 protection ("PGR_out_of_P3") and production forest (Drevet Skov), we fuse this classes into one layer
+
+
+```{r productionForest, eval=FALSE}
+Subclasses<- rast("Data/Subclasses.tif")
+
+ProductionAreas <- Template
+
+ProductionAreas <- terra::ifel(Subclasses %in% c("Drevet Skov", "INT_AGG", "PGR_out_of_P3"), 1, 0)
+```
+
+We then add the Buildup that we read at the beggining of this document.
+
+```{r productionForestBuildup, eval=FALSE}
+ProductionAreas <- terra::ifel(!is.na(Subclasses) & BuildUp == 0, 1, ProductionAreas)
+
+ProductionAreas <- terra::mask(ProductionAreas, DK)
+
+cls <- data.frame(id=0:1, Protection=c("other",stringr::str_wrap("Production areas", 10)))
+levels(ProductionAreas) <- cls
+```
+
+
+```{r SaveProductionareas, eval=FALSE}
+SpeciesPoolR::write_cog(ProductionAreas, "FinalLayers/ProductionAreas.tif")
+```
+
 
 ## Insuffient legal protection
 
