@@ -23,21 +23,58 @@ land target**, distinguishing between:
 This README focuses on the spatial data processing steps used to derive
 the terrestrial map and summary statistics for Fig. 1.
 
-## Software and packages
+## Software, packages and helper functions
 
-All spatial calculations were done in R using the
-[`terra`](https://cran.r-project.org/package=terra) package.
-Visualisations were generated with
-[`ggplot2`](https://cran.r-project.org/package=ggplot2) and
-[`tidyterra`](https://cran.r-project.org/package=tidyterra). The
-terrestrial outline of Denmark was retrieved using the
-[`geodata`](https://cran.r-project.org/package=geodata) package.
+All spatial analyses were carried out in R using the following core
+packages:
+
+- [`terra`](https://cran.r-project.org/package=terra) for raster and
+  vector processing,  
+- [`ggplot2`](https://cran.r-project.org/package=ggplot2) and
+  [`tidyterra`](https://cran.r-project.org/package=tidyterra) for
+  visualisation, and  
+- [`geodata`](https://cran.r-project.org/package=geodata) to obtain the
+  national boundary of Denmark.
+
+We also use [`stringr`](https://cran.r-project.org/package=stringr) for
+simple text wrapping in legend labels.
+
+In addition, we define two small helper functions:
+
+- `ToOne()` to read a raster from the `Data/` folder and convert all
+  non-`NA` values to 1 (presence/absence), and  
+- `write_cog()` to save a `SpatRaster` as a Cloud Optimized GeoTIFF
+  (COG) using GDAL options for compression.
 
 ``` r
 library(geodata)
 library(ggplot2)
 library(terra)
 library(tidyterra)
+library(stringr)   # for stringr::str_wrap used below
+```
+
+``` r
+# Helper to read a raster from the Data/ folder and convert all non-NA values to 1
+ToOne <- function(x) {
+  r <- terra::rast(file.path("Data", x))
+  r <- as.numeric(r)
+
+  r <- terra::ifel(!is.na(r), 1, 0)
+
+  return(r)
+}
+
+# Helper to write a SpatRaster as a Cloud Optimized GeoTIFF (COG)
+# COGs are geospatial files optimised for efficient cloud storage and retrieval.
+write_cog <- function(SpatRaster, Name) {
+  terra::writeRaster(
+    x        = SpatRaster,
+    filename = Name,
+    overwrite = TRUE,
+    gdal      = c("COMPRESS=DEFLATE", "TFW=YES", "of=COG")
+  )
+}
 ```
 
 ## Spatial template and national boundary
@@ -167,7 +204,7 @@ PA30 <- terra::mask(PA30, DK)
 Finally, we save the composite layer as a Cloud Optimised GeoTIFF:
 
 ``` r
-SpeciesPoolR::write_cog(PA30, "FinalLayers/PA30.tif")
+write_cog(PA30, "FinalLayers/PA30.tif")
 ```
 
 This layer corresponds to the **turquoise category** (“Protected areas
@@ -194,12 +231,13 @@ where pixels used primarily for these land uses are flagged as
 target. The resulting raster is then used to derive the orange category
 in Fig. 1.
 
-### Reading the layers in
+### Reading and combining the layers
 
-We have a layer (subclasses) that has among its categories fields in
-rotation (INT_AGG), grasslands not covered by Article 3 protection
-(“PGR_out_of_P3”) and production forest (Drevet Skov), we fuse this
-classes into one layer
+We use a raster (`Subclasses`) which classifies the areas that are
+within at least one protection scheme, that includes, among others,
+fields in rotation (`"INT_AGG"`), grasslands not covered by Article 3
+protection (`"PGR_out_of_P3"`), and production forest (`"Drevet Skov"`).
+We merge these classes into a single layer of production areas.
 
 ``` r
 Subclasses<- rast("Data/Subclasses.tif")
@@ -209,7 +247,10 @@ ProductionAreas <- Template
 ProductionAreas <- terra::ifel(Subclasses %in% c("Drevet Skov", "INT_AGG", "PGR_out_of_P3"), 1, 0)
 ```
 
-We then add the Buildup that we read at the begining of this document.
+We then add built-up areas (from `BuildUp`, read above). Pixels that are
+both within the `Subclasses` (this means that is part of some protection
+scheme) raster and classified as built-up (`BuildUp == 0`) are also
+flagged as production / compromised areas.
 
 ``` r
 ProductionAreas <- terra::ifel(!is.na(Subclasses) & BuildUp == 0, 1, ProductionAreas)
@@ -220,9 +261,14 @@ cls <- data.frame(id=0:1, Protection=c("other",stringr::str_wrap("Production are
 levels(ProductionAreas) <- cls
 ```
 
+Finally, we save the production / compromised areas as a Cloud Optimised
+GeoTIFF:
+
 ``` r
-SpeciesPoolR::write_cog(ProductionAreas, "FinalLayers/ProductionAreas.tif")
+write_cog(ProductionAreas, "FinalLayers/ProductionAreas.tif")
 ```
+
+This layer underpins the **orange category** in Fig. 1.
 
 ## Insufficient legal protection
 
@@ -315,10 +361,109 @@ levels(Private_P3) <- cls
 We save this layer as a Cloud Optimised GeoTIFF:
 
 ``` r
-SpeciesPoolR::write_cog(Private_P3, "FinalLayers/InsufficientLegalProtection.tif")
+write_cog(Private_P3, "FinalLayers/InsufficientLegalProtection.tif")
 ```
 
 This layer corresponds to the **yellow category** (“Insufficient legal
 protection”) in Fig. 1 of the manuscript.
 
-## Requires individual assesment
+## Requires individual assessment
+
+Some protection schemes cannot be fully evaluated with the available
+information (for example, because management prescriptions or long-term
+legal guarantees are not consistently documented at the ecosystem
+level). For these cases, the criteria C1–C5 cannot be conclusively
+assessed.
+
+In the manuscript, areas that **require individual assessment**
+primarily include:
+
+- Paragraph 3 areas (including dunes),
+- Natura 2000 areas,
+- conservation orders (*fredninger*, approximated here via IUCN-coded
+  areas),
+- private untouched forest,
+- subsidy schemes, and
+- nature and wildlife reserves.
+
+Pixels that fall inside at least one of these schemes, and that are not
+already classified as fully contributing protected areas or production
+areas, are placed in the “requires individual assessment” category
+(lavender in Fig. 1).
+
+### Identifying areas that require individual assessment
+
+We start by reading the Paragraph 3 (including dunes) raster and
+converting it to a simple presence/absence layer:
+
+``` r
+# Paragraph 3 and dunes
+RIA_P3 <- terra::rast("Data/Rast_p3_Croped.tif")
+RIA_P3 <- as.numeric(RIA_P3)
+RIA_P3[!is.na(RIA_P3)] <- 1   # all non-NA treated as Paragraph 3 presence
+```
+
+Next, we read the additional protection schemes using the `ToOne()`
+helper defined above, which reads a raster from the `Data/` folder and
+converts all non-NA values to 1:
+
+``` r
+Natura2000              <- ToOne("Rast_Natura2000_Croped.tif")
+NaturaOgVildtreservater <- ToOne("Rast_NaturaOgVildtreservater_Croped.tif")
+IUCN                    <- ToOne("Rast_IUCN_Croped.tif")
+Stoette                 <- ToOne("Rast_stoette_Croped.tif")   # subsidy schemes
+```
+
+We then derive a binary layer for **private untouched forest**. In this
+dataset, `Rast_Urort_Skov_Croped.tif` contains information on untouched
+forest, and the recoding below isolates private untouched forest as a
+separate binary layer:
+
+``` r
+PrivateUrortSkov <- terra::rast("Data/Rast_Urort_Skov_Croped.tif")
+PrivateUrortSkov <- as.numeric(PrivateUrortSkov)
+
+# Recode to a binary private untouched forest layer
+PrivateUrortSkov[PrivateUrortSkov == 1] <- NA
+PrivateUrortSkov[PrivateUrortSkov == 0] <- 1
+PrivateUrortSkov[is.na(PrivateUrortSkov)] <- 0
+```
+
+We then sum all these layers:
+
+- Natura 2000
+- Nature and wildlife reserves
+- IUCN-coded conservation orders
+- Paragraph 3 and dunes
+- subsidy schemes
+- private untouched forest
+
+Any pixel with a sum \> 0 is considered part of the **requires
+individual assessment** category.
+
+``` r
+RIA <- Natura2000 +
+       NaturaOgVildtreservater +
+       IUCN +
+       RIA_P3 +
+       Stoette +
+       PrivateUrortSkov
+
+RIA <- terra::mask(RIA, DK)
+RIA[RIA > 0] <- 1
+
+cls_RIA <- data.frame(
+  id         = 0:1,
+  Protection = c("other", stringr::str_wrap("Requires individual assessment", 10))
+)
+levels(RIA) <- cls_RIA
+```
+
+Finally, we save this layer as a Cloud Optimised GeoTIFF:
+
+``` r
+write_cog(RIA, "FinalLayers/RequiresIndividualAssessment.tif")
+```
+
+This binary raster (`RIA == 1`) corresponds to the **lavender category**
+(“Requires individual assessment”) in Fig. 1 of the manuscript.
