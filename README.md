@@ -55,15 +55,6 @@ library(stringr)   # for stringr::str_wrap used below
 ```
 
 ``` r
-# Helper to read a raster from the Data/ folder and convert all non-NA values to 1
-ToOne <- function(x) {
-  r <- terra::rast(file.path("Data", x))
-  r <- as.numeric(r)
-
-  r <- terra::ifel(!is.na(r), 1, 0)
-
-  return(r)
-}
 
 # Helper to write a SpatRaster as a Cloud Optimized GeoTIFF (COG)
 # COGs are geospatial files optimised for efficient cloud storage and retrieval.
@@ -177,7 +168,7 @@ schemes covers that pixel.
 PA30 <- NNP_approved + Fondsejede + UroertSkov_NST
 
 cls <- data.frame(
-  ID    = c(1,   10,          11,             100,            101,            110,                  111),
+  ID    = c(1, 10, 11, 100, 101, 110, 111),
   class = c("NNP_approved",
             "Fondsejede",
             "NNP_Fondsejede",
@@ -378,79 +369,24 @@ assessed.
 In the manuscript, areas that **require individual assessment**
 primarily include:
 
-- Paragraph 3 areas (including dunes),
-- Natura 2000 areas,
-- conservation orders (*fredninger*, approximated here via IUCN-coded
-  areas),
-- private untouched forest,
-- subsidy schemes, and
-- nature and wildlife reserves.
-
-Pixels that fall inside at least one of these schemes, and that are not
-already classified as fully contributing protected areas or production
-areas, are placed in the “requires individual assessment” category
-(lavender in Fig. 1).
+Pixels that fall inside a protection scheme and that are not already
+classified as fully contributing protected areas, production areas or
+insufficient legal protection, are placed in the “requires individual
+assessment” category (lavender in Fig. 1).
 
 ### Identifying areas that require individual assessment
 
-We start by reading the Paragraph 3 (including dunes) raster and
-converting it to a simple presence/absence layer:
+We use the Subclasses layer to identify pixels that are inside and out
+of the protection schemes and transform it into a binary layer, that we
+will later used to build a harmonized layer
+
+Any pixel within the protection schemes will be considered a candidate
+to be in the **requires individual assessment** category.
 
 ``` r
-# Paragraph 3 and dunes
-RIA_P3 <- terra::rast("Data/Rast_p3_Croped.tif")
-RIA_P3 <- as.numeric(RIA_P3)
-RIA_P3[!is.na(RIA_P3)] <- 1   # all non-NA treated as Paragraph 3 presence
-```
-
-Next, we read the additional protection schemes using the `ToOne()`
-helper defined above, which reads a raster from the `Data/` folder and
-converts all non-NA values to 1:
-
-``` r
-Natura2000              <- ToOne("Rast_Natura2000_Croped.tif")
-NaturaOgVildtreservater <- ToOne("Rast_NaturaOgVildtreservater_Croped.tif")
-IUCN                    <- ToOne("Rast_IUCN_Croped.tif")
-Stoette                 <- ToOne("Rast_stoette_Croped.tif")   # subsidy schemes
-```
-
-We then derive a binary layer for **private untouched forest**. In this
-dataset, `Rast_Urort_Skov_Croped.tif` contains information on untouched
-forest, and the recoding below isolates private untouched forest as a
-separate binary layer:
-
-``` r
-PrivateUrortSkov <- terra::rast("Data/Rast_Urort_Skov_Croped.tif")
-PrivateUrortSkov <- as.numeric(PrivateUrortSkov)
-
-# Recode to a binary private untouched forest layer
-PrivateUrortSkov[PrivateUrortSkov == 1] <- NA
-PrivateUrortSkov[PrivateUrortSkov == 0] <- 1
-PrivateUrortSkov[is.na(PrivateUrortSkov)] <- 0
-```
-
-We then sum all these layers:
-
-- Natura 2000
-- Nature and wildlife reserves
-- IUCN-coded conservation orders
-- Paragraph 3 and dunes
-- subsidy schemes
-- private untouched forest
-
-Any pixel with a sum \> 0 is considered part of the **requires
-individual assessment** category.
-
-``` r
-RIA <- Natura2000 +
-       NaturaOgVildtreservater +
-       IUCN +
-       RIA_P3 +
-       Stoette +
-       PrivateUrortSkov
+RIA <- terra::ifel(!is.na(Subclasses), 1, 0)
 
 RIA <- terra::mask(RIA, DK)
-RIA[RIA > 0] <- 1
 
 cls_RIA <- data.frame(
   id         = 0:1,
@@ -482,8 +418,6 @@ order:
     land use)
 3.  **Insufficient legal protection**
 4.  **Requires individual assessment**
-5.  **Other** (remaining terrestrial areas not covered by the above
-    categories)
 
 Pixels outside the terrestrial area of Denmark are masked out.
 
@@ -493,8 +427,6 @@ We implement this by combining the rasters defined above:
 - `ProductionAreas` – production / compromised areas
 - `Private_P3` – areas with insufficient legal protection
 - `RIA` – areas requiring individual assessment
-- `Subclasses` – land-cover subclasses used to identify remaining
-  terrestrial areas
 
 ``` r
 # Start from a template aligned to PA30
@@ -514,20 +446,15 @@ FinalLayer[Private_P3 == 1 & FinalLayer == 0] <- 3
 # 4: Requires individual assessment (remaining schemes with incomplete information)
 FinalLayer[RIA == 1 & FinalLayer == 0] <- 4
 
-# 5: Other terrestrial areas (unprotected land and residual categories)
-#    Here we use Subclasses to identify terrestrial pixels not yet assigned.
-FinalLayer[!is.na(Subclasses) & FinalLayer == 0] <- 5
 
 cls_Final <- data.frame(
-  id         = 0:5,
+  id         = 0:4,
   Protection = c(
     stringr::str_wrap("No protection", 15),
     stringr::str_wrap("Protected areas", 15),
     stringr::str_wrap("Production areas", 15),
     stringr::str_wrap("Insufficient legal protection", 15),
-    stringr::str_wrap("Requires individual assessment", 15),
-    stringr::str_wrap("Other", 15)
-  )
+    stringr::str_wrap("Requires individual assessment", 15))
 )
 levels(FinalLayer) <- cls_Final
 ```
@@ -571,19 +498,18 @@ openxlsx::write.xlsx(area_tbl, "area_tbl.xlsx")
 
 knitr::kable(
   area_tbl,
-  digits   = c(0, 2, 2),
-  col.names = c("Category", "Area (km²)", "% of terrestrial area")
+  digits   = 2
 )
 ```
 
-|     | Category     | Area (km²) | % of terrestrial area |
-|:----|:-------------|-----------:|----------------------:|
-| 4   | Insufficient |            |                       |
+|     | value        | area_km2 | prop_land |
+|:----|:-------------|---------:|----------:|
+| 4   | Insufficient |          |           |
 
 legal protection \| 1596.38\| 3.70\| \|1 \|No protection \| 36298.14\|
-84.13\| \|6 \|Other \| 351.59\| 0.81\| \|3 \|Production areas \|
-2026.66\| 4.70\| \|2 \|Protected areas \| 736.64\| 1.71\| \|5 \|Requires
-individual assessment \| 2178.31\| 5.05\|
+84.13\| \|3 \|Production areas \| 2026.66\| 4.70\| \|2 \|Protected areas
+\| 736.64\| 1.71\| \|5 \|Requires individual assessment \| 2529.90\|
+5.86\|
 
 This table mirrors the proportions shown in **Fig. 1**, with small
 differences due to rounding.
