@@ -467,3 +467,172 @@ write_cog(RIA, "FinalLayers/RequiresIndividualAssessment.tif")
 
 This binary raster (`RIA == 1`) corresponds to the **lavender category**
 (“Requires individual assessment”) in Fig. 1 of the manuscript.
+
+## Harmonised final protection layer and category prioritisation
+
+The protection categories described above are not mutually exclusive: a
+given pixel can belong to more than one scheme (for example, a Natura
+2000 site that is also an Article 3 area). To produce the final map in
+Fig. 1, we therefore create a **harmonized categorical raster** in which
+each pixel is assigned to a single category, following a fixed priority
+order:
+
+1.  **Protected areas** (fully contributing to the 30% target)
+2.  **Production areas** (areas where biodiversity is compromised by
+    land use)
+3.  **Insufficient legal protection**
+4.  **Requires individual assessment**
+5.  **Other** (remaining terrestrial areas not covered by the above
+    categories)
+
+Pixels outside the terrestrial area of Denmark are masked out.
+
+We implement this by combining the rasters defined above:
+
+- `PA30` – composite layer of fully contributing protected areas
+- `ProductionAreas` – production / compromised areas
+- `Private_P3` – areas with insufficient legal protection
+- `RIA` – areas requiring individual assessment
+- `Subclasses` – land-cover subclasses used to identify remaining
+  terrestrial areas
+
+``` r
+# Start from a template aligned to PA30
+FinalLayer <- PA30
+FinalLayer[] <- 0
+FinalLayer <- terra::mask(FinalLayer, DK)
+
+# 1: Protected areas (fully contributing to the 30% target)
+FinalLayer[!is.na(PA30)] <- 1
+
+# 2: Production areas (where biodiversity is compromised)
+FinalLayer[ProductionAreas == 1 & FinalLayer == 0] <- 2
+
+# 3: Insufficient legal protection (private Article 3, single-scheme protection)
+FinalLayer[Private_P3 == 1 & FinalLayer == 0] <- 3
+
+# 4: Requires individual assessment (remaining schemes with incomplete information)
+FinalLayer[RIA == 1 & FinalLayer == 0] <- 4
+
+# 5: Other terrestrial areas (unprotected land and residual categories)
+#    Here we use Subclasses to identify terrestrial pixels not yet assigned.
+FinalLayer[!is.na(Subclasses) & FinalLayer == 0] <- 5
+
+cls_Final <- data.frame(
+  id         = 0:5,
+  Protection = c(
+    stringr::str_wrap("No protection", 15),
+    stringr::str_wrap("Protected areas", 15),
+    stringr::str_wrap("Production areas", 15),
+    stringr::str_wrap("Insufficient legal protection", 15),
+    stringr::str_wrap("Requires individual assessment", 15),
+    stringr::str_wrap("Other", 15)
+  )
+)
+levels(FinalLayer) <- cls_Final
+```
+
+We then save the harmonised final layer as a Cloud Optimised GeoTIFF:
+
+``` r
+write_cog(FinalLayer, "FinalLayers/FinalLayer.tif")
+```
+
+This **categorical raster** is the basis for the map and the pie chart
+shown in **Fig. 1** of the manuscript, where each colour corresponds to
+one of the five main categories listed above.
+
+## Area and proportions of protection categories
+
+This section computes the total area and percentage of land in each
+protection category defined in `FinalLayer`. Proportions are calculated
+relative to the total area of **all land cells** (categories 1–5),
+excluding category 0 (“No protection / no data”).
+
+``` r
+# Cell area (km²) for each pixel
+cell_area <- terra::cellSize(FinalLayer, unit = "km")
+
+# Zonal sum of cell areas per category
+area_tbl <- terra::zonal(cell_area, FinalLayer, "sum", na.rm = TRUE)
+
+
+colnames(area_tbl) <- c("value", "area_km2")
+
+
+# Total land area (categories 1–5), used as denominator
+
+area_tbl$prop_land <- (area_tbl$area_km2 / 43144) * 100
+
+# Order by category code
+area_tbl <- area_tbl[order(area_tbl$value), ]
+
+openxlsx::write.xlsx(area_tbl, "area_tbl.xlsx")
+
+knitr::kable(
+  area_tbl,
+  digits   = c(0, 2, 2),
+  col.names = c("Category", "Area (km²)", "% of terrestrial area")
+)
+```
+
+|     | Category     | Area (km²) | % of terrestrial area |
+|:----|:-------------|-----------:|----------------------:|
+| 4   | Insufficient |            |                       |
+
+legal protection \| 1596.38\| 3.70\| \|1 \|No protection \| 36298.14\|
+84.13\| \|6 \|Other \| 351.59\| 0.81\| \|3 \|Production areas \|
+2026.66\| 4.70\| \|2 \|Protected areas \| 736.64\| 1.71\| \|5 \|Requires
+individual assessment \| 2178.31\| 5.05\|
+
+This table mirrors the proportions shown in **Fig. 1**, with small
+differences due to rounding.
+
+## Map of terrestrial protection categories
+
+Here we plot the `FinalLayer` raster using the same colour scheme as the
+manuscript:
+
+- **Protected areas** – `#5AC1A6` (turquoise)
+- **Requires individual assessment** – `#8CA2D3` (lavender/blue)
+- **Insufficient legal protection** – `#F6E71C` (yellow)
+- **Production areas** – `#F28E2B` (orange)
+- **Other** (unprotected land / residual terrestrial areas) – `#4D4D4D`
+  (dark grey)
+- **No protection** (id 0, typically non-terrestrial / no data) – white
+
+``` r
+# Define colours for each category using the labels stored in FinalLayer
+cat_levels <- levels(FinalLayer)[[1]]$Protection
+
+category_colors <- c(
+  "No protection"                 = "#626260",
+  "Protected areas"               = "#5AC1A6",
+  "Production\nareas"              = "#FAA329",
+  "Insufficient\nlegal\nprotection" = "#F6E71C",
+  "Requires\nindividual\nassessment"= "#8CA2D3",
+  "Other"                         = "#FFFFFF"
+)
+
+# Reorder colour vector to match the factor level order in the raster
+category_colors <- category_colors[cat_levels]
+
+ggplot() +
+  geom_spatraster(data = FinalLayer) +
+  scale_fill_manual(
+    values   = category_colors,
+    drop     = FALSE,
+    na.value = "transparent",
+    name     = "Protection category"
+  )  +
+  theme_minimal() +
+  theme(
+    axis.title  = element_blank(),
+    axis.text   = element_blank(),
+    axis.ticks  = element_blank(),
+    panel.grid  = element_blank(),
+    legend.position = "right"
+  )
+```
+
+![](README_files/figure-gfm/map_final_layer-1.png)<!-- -->
