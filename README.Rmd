@@ -385,7 +385,7 @@ RIA <- terra::rast("FinalLayers/RequiresIndividualAssessment.tif")
 ```
 
 
-```{r final_harmonised_layer, eval = TRUE}
+```{r final_harmonised_layer, eval = FALSE}
 # Start from a template aligned to PA30
 FinalLayer <- PA30
 FinalLayer[] <- 0
@@ -418,7 +418,7 @@ levels(FinalLayer) <- cls_Final
 
 We then save the harmonised final layer as a Cloud Optimised GeoTIFF:
 
-```{r final_harmonised_save, eval = TRUE}
+```{r final_harmonised_save, eval = FALSE}
 write_cog(FinalLayer, "FinalLayers/FinalLayer.tif")
 ```
 
@@ -444,7 +444,7 @@ cell_area <- terra::cellSize(FinalLayer, unit = "km")
 area_tbl <- terra::zonal(cell_area, FinalLayer, "sum", na.rm = TRUE)
 
 
-colnames(area_tbl) <- c("value", "area_km2")
+colnames(area_tbl) <- c("Protection", "area_km2")
 
 
 # Total land area (categories 1–5), used as denominator
@@ -452,15 +452,21 @@ colnames(area_tbl) <- c("value", "area_km2")
 area_tbl$prop_land <- (area_tbl$area_km2 / 43144) * 100
 
 # Order by category code
-area_tbl <- area_tbl[order(area_tbl$value), ]
+area_tbl <- area_tbl[order(area_tbl$Protection), ]
+area_tbl$Protection <- gsub("\\s*\n\\s*", " ", area_tbl$Protection)
 
 openxlsx::write.xlsx(area_tbl, "area_tbl.xlsx")
+```
 
+```{r, echo=FALSE}
+area_tbl <- readxl::read_xlsx("area_tbl.xlsx")
 knitr::kable(
   area_tbl,
+  format    = "pipe", 
   digits   = 2
 )
 ```
+
 
 This table mirrors the proportions shown in **Fig. 1**, with small differences due to rounding.
 

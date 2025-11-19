@@ -484,7 +484,7 @@ cell_area <- terra::cellSize(FinalLayer, unit = "km")
 area_tbl <- terra::zonal(cell_area, FinalLayer, "sum", na.rm = TRUE)
 
 
-colnames(area_tbl) <- c("value", "area_km2")
+colnames(area_tbl) <- c("Protection", "area_km2")
 
 
 # Total land area (categories 1–5), used as denominator
@@ -492,24 +492,19 @@ colnames(area_tbl) <- c("value", "area_km2")
 area_tbl$prop_land <- (area_tbl$area_km2 / 43144) * 100
 
 # Order by category code
-area_tbl <- area_tbl[order(area_tbl$value), ]
+area_tbl <- area_tbl[order(area_tbl$Protection), ]
+area_tbl$Protection <- gsub("\\s*\n\\s*", " ", area_tbl$Protection)
 
 openxlsx::write.xlsx(area_tbl, "area_tbl.xlsx")
-
-knitr::kable(
-  area_tbl,
-  digits   = 2
-)
 ```
 
-|     | value        | area_km2 | prop_land |
-|:----|:-------------|---------:|----------:|
-| 4   | Insufficient |          |           |
-
-legal protection \| 1596.38\| 3.70\| \|1 \|No protection \| 36298.14\|
-84.13\| \|3 \|Production areas \| 2026.66\| 4.70\| \|2 \|Protected areas
-\| 736.64\| 1.71\| \|5 \|Requires individual assessment \| 2529.90\|
-5.86\|
+| Protection                     | area_km2 | prop_land |
+|:-------------------------------|---------:|----------:|
+| Insufficient legal protection  |  1596.38 |      3.70 |
+| No protection                  | 36298.14 |     84.13 |
+| Production areas               |  2026.66 |      4.70 |
+| Protected areas                |   736.64 |      1.71 |
+| Requires individual assessment |  2529.90 |      5.86 |
 
 This table mirrors the proportions shown in **Fig. 1**, with small
 differences due to rounding.
@@ -536,8 +531,7 @@ category_colors <- c(
   "Protected areas"               = "#5AC1A6",
   "Production\nareas"              = "#FAA329",
   "Insufficient\nlegal\nprotection" = "#F6E71C",
-  "Requires\nindividual\nassessment"= "#8CA2D3",
-  "Other"                         = "#FFFFFF"
+  "Requires\nindividual\nassessment"= "#8CA2D3"
 )
 
 # Reorder colour vector to match the factor level order in the raster
