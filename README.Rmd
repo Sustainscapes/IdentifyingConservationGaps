@@ -436,7 +436,7 @@ FinalLayer <- terra::rast("FinalLayers/FinalLayer.tif")
 
 
 
-```{r area_proportions, eval = TRUE}
+```{r area_proportions, eval = FALSE}
 # Cell area (km²) for each pixel
 cell_area <- terra::cellSize(FinalLayer, unit = "km")
 
@@ -497,7 +497,7 @@ category_colors <- c(
 category_colors <- category_colors[cat_levels]
 
 ggplot() +
-  geom_spatraster(data = FinalLayer) +
+  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/8) +
   scale_fill_manual(
     values   = category_colors,
     drop     = FALSE,

@@ -538,7 +538,7 @@ category_colors <- c(
 category_colors <- category_colors[cat_levels]
 
 ggplot() +
-  geom_spatraster(data = FinalLayer) +
+  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/8) +
   scale_fill_manual(
     values   = category_colors,
     drop     = FALSE,
