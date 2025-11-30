@@ -4,6 +4,7 @@
 # IdentifyingConservationGaps
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 This repository documents the data and R code used to reproduce the
@@ -489,7 +490,7 @@ colnames(area_tbl) <- c("Protection", "area_km2")
 
 # Total land area (categories 1–5), used as denominator
 
-area_tbl$prop_land <- (area_tbl$area_km2 / 43144) * 100
+area_tbl$prop_land <- (area_tbl$area_km2 / Area_DK) * 100
 
 # Order by category code
 area_tbl <- area_tbl[order(area_tbl$Protection), ]
