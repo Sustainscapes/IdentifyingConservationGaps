@@ -53,12 +53,15 @@ library(ggplot2)
 library(terra)
 library(tidyterra)
 library(stringr)   # for stringr::str_wrap used below
+library(BDRUtils)
+library(dplyr)
+library(purrr)
 ```
 
 ``` r
 
 # Helper to write a SpatRaster as a Cloud Optimized GeoTIFF (COG)
-# COGs are geospatial files optimised for efficient cloud storage and retrieval.
+
 write_cog <- function(SpatRaster, Name) {
   terra::writeRaster(
     x        = SpatRaster,
@@ -539,7 +542,7 @@ category_colors <- c(
 category_colors <- category_colors[cat_levels]
 
 ggplot() +
-  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/8) +
+  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/20) +
   scale_fill_manual(
     values   = category_colors,
     drop     = FALSE,
@@ -557,3 +560,209 @@ ggplot() +
 ```
 
 ![](README_files/figure-gfm/map_final_layer-1.png)<!-- -->
+
+## Generation of Table S2
+
+Table S2 in the manuscript summarises, for each protection scheme:
+
+- its total area in Denmark (km² and % of Denmark), and  
+- the area and percentage of that scheme that overlaps with  
+  **(i)** infrastructure,  
+  **(ii)** agriculture, and  
+  **(iii)** managed forest.
+
+To derive this table we:
+
+1.  build a multi-layer raster stack with all relevant schemes and
+    pressures,  
+2.  use `terra::crosstab()` to count how many pixels fall in each
+    combination,  
+3.  convert pixel counts to area in km², and  
+4.  use the helper `exclusivity_table()` function from **BDRUtils** to
+    summarise overlaps scheme by scheme.
+
+``` r
+Subclasses <- terra::rast("Data/Subclasses.tif")
+Total <- terra::ifel(is.na(Subclasses), NA, 1)
+Ownership <- terra::rast("Data/Ownership2025.tif") |> 
+  terra::resample(Subclasses, method = "near")
+BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
+BuildUp <- terra::ifel(BuildUp == 1, 2, 1)
+BuildUp <- terra::ifel(BuildUp == 2, 0, 1)
+Agriculture <- terra::rast("Data/Rast_markblokkort_Croped.tif")
+Natura2000 <- terra::rast("Data/Rast_Natura2000_Croped.tif")
+ConservationOrders <- terra::rast("Data/Rast_IUCN_Croped.tif")
+Article3 <- terra::rast("Data/Rast_p3_Croped.tif")
+GameReservation <- terra::rast("Data/Rast_NaturaOgVildtreservater_Croped.tif")
+
+UnmanagedForest <- terra::rast("Data/Rast_Urort_Skov_Croped.tif")
+Dunes <- terra::rast("Data/Dunes.tif")
+NNP <- terra::rast("Data/Rast_Nature_National_Parks_Croped.tif")
+PrivateFundations <- terra::rast("Data/Rast_Fondsejede_Croped.tif")
+
+Main <- c(Total, Ownership, BuildUp, Agriculture, Subclasses, Natura2000,ConservationOrders, Article3, GameReservation, Dunes, UnmanagedForest, NNP, PrivateFundations)
+names(Main) <- c("Total", "Ownership","Infrastructure", "Agriculture", "Subclasses", "Natura2000","ConservationOrders", "Article3", "GameReservation", "Dunes", "UnmanagedForest", "NatureNationalParks","PrivateFundations")
+```
+
+We then use `terra::crosstab()` to obtain, for every unique combination
+of categories across these layers, the number of pixels (`n`). This is
+saved once and reused in the rest of the workflow:
+
+``` r
+TableDF <- terra::crosstab(Main, useNA = T, long = T)
+saveRDS(TableDF, "TableDF.rds")
+```
+
+### Preparing the input for `exclusivity_table()`
+
+The helper function `BDRUtils::exclusivity_table()` expects:
+
+- one column per scheme / pressure, coded as `"Yes"` or `NA`, and  
+- a column called `Area_sq_Km` giving the area of each row in km².
+
+Because all rasters are at **10 m × 10 m** resolution, each pixel
+represents  
+$100 \, \text{m}^2 = 0.0001 \, \text{km}^2$. We therefore convert `n`
+pixels to km² as `n * 100 / 1e6`.
+
+We restrict the analysis to pixels that fall inside at least one
+protection subclass (i.e. `Subclasses` is not `NA`), and then create
+`"Yes"/NA` dummies for each variable we want to use in S2:
+
+``` r
+TableDF <- readRDS("TableDF.rds")
+
+ForS2Table <- TableDF |> 
+  dplyr::filter(!is.na(Subclasses)) |> 
+  dplyr::mutate(Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
+                Agriculture = ifelse(is.na(Agriculture), NA, "Yes"),
+                Managed_Forest = ifelse(Subclasses == "Drevet Skov", "Yes", NA),
+                Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
+                Dunes = ifelse(is.na(Dunes), NA, "Yes"),
+                NatureNationalParks = ifelse(is.na(NatureNationalParks), NA, "Yes"),
+                Area_sq_Km = (n*100)/1000000)
+```
+
+### Helper to generate one S2 row per scheme
+
+For a given protection scheme (e.g. `"Natura2000"`), we use
+`exclusivity_table()` three times, each time pairing the scheme with one
+pressure variable:
+
+1.  scheme vs. `Infrastructure`
+2.  scheme vs. `Agriculture`
+3.  scheme vs. `Managed_Forest`
+
+For each call we extract:
+
+- `Total` – total area of the scheme (km²), and  
+- `Non_exclusive` – area where the scheme overlaps the given pressure.
+
+We then compute the share of the scheme affected by each pressure and,
+using `Area_DK` computed above, the share of Denmark covered by the
+scheme.
+
+``` r
+make_S2_line <- function(scheme, nice_name = scheme,
+                         df = ForS2Table, DK_total = Area_DK) {
+
+  infra <- exclusivity_table(
+    DF   = df,
+    Vars = c(scheme, "Infrastructure")
+  ) %>%
+    dplyr::filter(Variable == scheme) %>%
+    dplyr::transmute(
+      Scheme = nice_name,
+      Total  = Total,
+      Total_of_DK_percent = Total / DK_total * 100,
+      Infrastructure_km2  = Non_exclusive,
+      Infrastructure_of_scheme_percent =
+        Infrastructure_km2 / Total * 100
+    )
+
+  agri <- exclusivity_table(
+    DF   = df,
+    Vars = c(scheme, "Agriculture")
+  ) %>%
+    dplyr::filter(Variable == scheme) %>%
+    dplyr::transmute(
+      Scheme = nice_name,
+      Agriculture_km2 = Non_exclusive,
+      Agriculture_of_scheme_percent =
+        Agriculture_km2 / Total * 100
+    )
+
+  mfor <- exclusivity_table(
+    DF   = df,
+    Vars = c(scheme, "Managed_Forest")
+  ) %>%
+    dplyr::filter(Variable == scheme) %>%
+    dplyr::transmute(
+      Scheme = nice_name,
+      Managed_forest_km2 = Non_exclusive,
+      Managed_forest_of_scheme_percent =
+        Managed_forest_km2 / Total * 100
+    )
+
+  infra %>%
+    dplyr::left_join(agri, by = "Scheme") %>%
+    dplyr::left_join(mfor, by = "Scheme")
+}
+```
+
+### Assembling Table S2 for all schemes
+
+Finally, we apply `make_S2_line()` to each protection scheme of interest
+using `purrr::map2_dfr()`. The first vector (`scheme_vec`) lists the
+column names in `ForS2Table`, and the second vector (`nice_vec`)
+provides the labels that appear in the final table.
+
+``` r
+
+scheme_vec <- c(
+  "Natura2000",
+  "ConservationOrders",
+  "GameReservation",
+  #"Article3",
+  #"Unmanaged_Forest",   # or "UnmanagedForest" if that's your column
+  "Dunes",
+  "NatureNationalParks",
+  "PrivateFundations"
+)
+
+nice_vec <- c(
+  "Natura 2000",
+  "Conservation orders",
+  "Game reserve",
+  #"Article 3",
+  #"Unmanaged forest",
+  "Dune protection scheme",
+  "Nature national parks",
+  "Private nature foundations"
+)
+
+S2_body <- purrr::map2_dfr(
+  .x = scheme_vec,
+  .y = nice_vec,
+  .f = ~ make_S2_line(scheme = .x, nice_name = .y)
+)
+
+openxlsx::write.xlsx(S2_body, "Table_S2.xlsx")
+readr::write_csv(S2_body, "Table_S2.csv")
+```
+
+`S2_body` reproduces the structure of Table S2 in the manuscript, with
+one row per scheme and columns giving:
+
+- total area (square kilometers and percentage of Denmark), and  
+- area and percentage of each scheme overlapped by infrastructure,
+  agriculture and managed forest.
+
+| Scheme | Total | Total_of_DK_percent | Infrastructure_km2 | Infrastructure_of_scheme_percent | Agriculture_km2 | Agriculture_of_scheme_percent | Managed_forest_km2 | Managed_forest_of_scheme_percent |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Natura 2000 | 3878.62 | 8.99 | 146.47 | 3.78 | 1561.03 | 40.25 | 447.44 | 11.54 |
+| Conservation orders | 1091.78 | 2.53 | 40.15 | 3.68 | 433.41 | 39.70 | 108.73 | 9.96 |
+| Game reserve | 439.61 | 1.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| Dune protection scheme | 159.49 | 0.37 | 3.91 | 2.45 | 24.90 | 15.61 | 4.10 | 2.57 |
+| Nature national parks | 21.30 | 0.05 | 0.99 | 4.66 | 2.08 | 9.77 | 0.00 | 0.00 |
+| Private nature foundations | 247.09 | 0.57 | 4.83 | 1.95 | 78.29 | 31.68 | 0.00 | 0.00 |
