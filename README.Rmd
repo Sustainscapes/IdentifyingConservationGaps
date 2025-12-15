@@ -592,6 +592,8 @@ ForS2Table <- TableDF |>
                 Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
                 Dunes = ifelse(is.na(Dunes), NA, "Yes"),
                 NatureNationalParks = ifelse(is.na(NatureNationalParks), NA, "Yes"),
+                Article3_Private = ifelse(!is.na(Article3) & Ownership == "Private", "Yes", NA),
+                Article3_Public = ifelse(!is.na(Article3) & Ownership %in% c("Kommunalt", "State"), "Yes", NA),
                 Area_sq_Km = (n*100)/1000000)
 ```
 
@@ -672,7 +674,8 @@ scheme_vec <- c(
   "Natura2000",
   "ConservationOrders",
   "GameReservation",
-  #"Article3",
+  "Article3_Private",
+  "Article3_Public",
   #"Unmanaged_Forest",   # or "UnmanagedForest" if that's your column
   "Dunes",
   "NatureNationalParks",
@@ -683,7 +686,8 @@ nice_vec <- c(
   "Natura 2000",
   "Conservation orders",
   "Game reserve",
-  #"Article 3",
+  "Article3, Private",
+  "Article3, Public",
   #"Unmanaged forest",
   "Dune protection scheme",
   "Nature national parks",
