@@ -640,6 +640,8 @@ ForS2Table <- TableDF |>
                 Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
                 Dunes = ifelse(is.na(Dunes), NA, "Yes"),
                 NatureNationalParks = ifelse(is.na(NatureNationalParks), NA, "Yes"),
+                Unmanaged_Forest_Sate = ifelse(UnmanagedForest == "State", "Yes", NA),
+                Unmanaged_Forest_Private = ifelse(UnmanagedForest == "Private", "Yes", NA),
                 Article3_Private = ifelse(!is.na(Article3) & Ownership == "Private", "Yes", NA),
                 Article3_Public = ifelse(!is.na(Article3) & Ownership %in% c("Kommunalt", "State"), "Yes", NA),
                 Area_sq_Km = (n*100)/1000000)
@@ -727,7 +729,8 @@ scheme_vec <- c(
   "GameReservation",
   "Article3_Private",
   "Article3_Public",
-  #"Unmanaged_Forest",   # or "UnmanagedForest" if that's your column
+  "Unmanaged_Forest_Sate",
+  "Unmanaged_Forest_Private",
   "Dunes",
   "NatureNationalParks",
   "PrivateFundations"
@@ -739,7 +742,8 @@ nice_vec <- c(
   "Game reserve",
   "Article3, Private",
   "Article3, Public",
-  #"Unmanaged forest",
+   "Unmanaged_Forest_Sate",
+  "Unmanaged_Forest_Private",
   "Dune protection scheme",
   "Nature national parks",
   "Private nature foundations"
@@ -769,6 +773,8 @@ one row per scheme and columns giving:
 | Game reserve | 439.61 | 1.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | Article3, Private | 3138.80 | 7.28 | 49.58 | 1.58 | 1375.59 | 43.83 | 0.00 | 0.00 |
 | Article3, Public | 1079.99 | 2.50 | 20.35 | 1.88 | 341.54 | 31.62 | 0.00 | 0.00 |
+| Unmanaged_Forest_Sate | 484.76 | 1.12 | 16.64 | 3.43 | 31.79 | 6.56 | 0.00 | 0.00 |
+| Unmanaged_Forest_Private | 26.78 | 0.06 | 0.65 | 2.41 | 1.08 | 4.03 | 0.00 | 0.00 |
 | Dune protection scheme | 159.49 | 0.37 | 3.91 | 2.45 | 24.90 | 15.61 | 4.10 | 2.57 |
 | Nature national parks | 21.30 | 0.05 | 0.99 | 4.66 | 2.08 | 9.77 | 0.00 | 0.00 |
 | Private nature foundations | 247.09 | 0.57 | 4.83 | 1.95 | 78.29 | 31.68 | 0.00 | 0.00 |

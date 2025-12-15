@@ -592,6 +592,8 @@ ForS2Table <- TableDF |>
                 Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
                 Dunes = ifelse(is.na(Dunes), NA, "Yes"),
                 NatureNationalParks = ifelse(is.na(NatureNationalParks), NA, "Yes"),
+                Unmanaged_Forest_Sate = ifelse(UnmanagedForest == "State", "Yes", NA),
+                Unmanaged_Forest_Private = ifelse(UnmanagedForest == "Private", "Yes", NA),
                 Article3_Private = ifelse(!is.na(Article3) & Ownership == "Private", "Yes", NA),
                 Article3_Public = ifelse(!is.na(Article3) & Ownership %in% c("Kommunalt", "State"), "Yes", NA),
                 Area_sq_Km = (n*100)/1000000)
@@ -676,7 +678,8 @@ scheme_vec <- c(
   "GameReservation",
   "Article3_Private",
   "Article3_Public",
-  #"Unmanaged_Forest",   # or "UnmanagedForest" if that's your column
+  "Unmanaged_Forest_Sate",
+  "Unmanaged_Forest_Private",
   "Dunes",
   "NatureNationalParks",
   "PrivateFundations"
@@ -688,7 +691,8 @@ nice_vec <- c(
   "Game reserve",
   "Article3, Private",
   "Article3, Public",
-  #"Unmanaged forest",
+   "Unmanaged_Forest_Sate",
+  "Unmanaged_Forest_Private",
   "Dune protection scheme",
   "Nature national parks",
   "Private nature foundations"
@@ -719,7 +723,7 @@ dplyr::across(
 ) |>
 knitr::kable(
 format = "pipe",
-align = "lrrrrrrrr" # adjust if you change columns
+align = "lrrrrrrrrr" # adjust if you change columns
 )
 ```
 
