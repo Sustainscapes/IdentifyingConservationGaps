@@ -635,7 +635,7 @@ TableDF <- readRDS("TableDF.rds")
 ForS2Table <- TableDF |> 
   dplyr::filter(!is.na(Subclasses)) |> 
   dplyr::mutate(Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
-                Agriculture = ifelse(is.na(Agriculture), NA, "Yes"),
+                Agriculture = ifelse(Agriculture == "INT_AGG", NA, "Yes"),
                 Managed_Forest = ifelse(Subclasses == "Drevet Skov", "Yes", NA),
                 Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
                 Dunes = ifelse(is.na(Dunes), NA, "Yes"),
@@ -768,13 +768,13 @@ one row per scheme and columns giving:
 
 | Scheme | Total | Total_of_DK_percent | Infrastructure_km2 | Infrastructure_of_scheme_percent | Agriculture_km2 | Agriculture_of_scheme_percent | Managed_forest_km2 | Managed_forest_of_scheme_percent |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Natura 2000 | 3878.62 | 8.99 | 146.47 | 3.78 | 1561.03 | 40.25 | 447.44 | 11.54 |
-| Conservation orders | 1091.78 | 2.53 | 40.15 | 3.68 | 433.41 | 39.70 | 108.73 | 9.96 |
+| Natura 2000 | 3878.62 | 8.99 | 146.47 | 3.78 | 698.72 | 18.01 | 447.44 | 11.54 |
+| Conservation orders | 1091.78 | 2.53 | 40.15 | 3.68 | 246.07 | 22.54 | 108.73 | 9.96 |
 | Game reserve | 439.61 | 1.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| Article3, Private | 3138.80 | 7.28 | 49.58 | 1.58 | 1375.59 | 43.83 | 0.00 | 0.00 |
-| Article3, Public | 1079.99 | 2.50 | 20.35 | 1.88 | 341.54 | 31.62 | 0.00 | 0.00 |
-| Unmanaged_Forest_Sate | 484.76 | 1.12 | 16.64 | 3.43 | 31.79 | 6.56 | 0.00 | 0.00 |
-| Unmanaged_Forest_Private | 26.78 | 0.06 | 0.65 | 2.41 | 1.08 | 4.03 | 0.00 | 0.00 |
-| Dune protection scheme | 159.49 | 0.37 | 3.91 | 2.45 | 24.90 | 15.61 | 4.10 | 2.57 |
-| Nature national parks | 21.30 | 0.05 | 0.99 | 4.66 | 2.08 | 9.77 | 0.00 | 0.00 |
-| Private nature foundations | 247.09 | 0.57 | 4.83 | 1.95 | 78.29 | 31.68 | 0.00 | 0.00 |
+| Article3, Private | 3138.80 | 7.28 | 49.58 | 1.58 | 981.65 | 31.27 | 0.00 | 0.00 |
+| Article3, Public | 1079.99 | 2.50 | 20.35 | 1.88 | 276.12 | 25.57 | 0.00 | 0.00 |
+| Unmanaged_Forest_Sate | 484.76 | 1.12 | 16.64 | 3.43 | 23.74 | 4.90 | 0.00 | 0.00 |
+| Unmanaged_Forest_Private | 26.78 | 0.06 | 0.65 | 2.41 | 0.37 | 1.39 | 0.00 | 0.00 |
+| Dune protection scheme | 159.49 | 0.37 | 3.91 | 2.45 | 20.72 | 12.99 | 4.10 | 2.57 |
+| Nature national parks | 21.30 | 0.05 | 0.99 | 4.66 | 0.92 | 4.31 | 0.00 | 0.00 |
+| Private nature foundations | 247.09 | 0.57 | 4.83 | 1.95 | 32.77 | 13.26 | 0.00 | 0.00 |

@@ -587,7 +587,7 @@ TableDF <- readRDS("TableDF.rds")
 ForS2Table <- TableDF |> 
   dplyr::filter(!is.na(Subclasses)) |> 
   dplyr::mutate(Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
-                Agriculture = ifelse(is.na(Agriculture), NA, "Yes"),
+                Agriculture = ifelse(Agriculture == "INT_AGG", NA, "Yes"),
                 Managed_Forest = ifelse(Subclasses == "Drevet Skov", "Yes", NA),
                 Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
                 Dunes = ifelse(is.na(Dunes), NA, "Yes"),
