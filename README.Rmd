@@ -586,8 +586,9 @@ TableDF <- readRDS("TableDF.rds")
 
 ForS2Table <- TableDF |> 
   dplyr::filter(!is.na(Subclasses)) |> 
-  dplyr::mutate(Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
-                Agriculture = ifelse(Agriculture == "INT_AGG", NA, "Yes"),
+  dplyr::mutate(Total = ifelse(Total == 1, "Yes", NA),
+                Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
+                Agriculture = ifelse(Agriculture == "INT_AGG", "Yes", NA),
                 Managed_Forest = ifelse(Subclasses == "Drevet Skov", "Yes", NA),
                 Natura2000 = ifelse(is.na(Natura2000), NA, "Yes"),
                 Dunes = ifelse(is.na(Dunes), NA, "Yes"),
@@ -596,6 +597,7 @@ ForS2Table <- TableDF |>
                 Unmanaged_Forest_Private = ifelse(UnmanagedForest == "Private", "Yes", NA),
                 Article3_Private = ifelse(!is.na(Article3) & Ownership == "Private", "Yes", NA),
                 Article3_Public = ifelse(!is.na(Article3) & Ownership %in% c("Kommunalt", "State"), "Yes", NA),
+                GameReservation = ifelse(!is.na(GameReservation), "Yes", NA),
                 Area_sq_Km = (n*100)/1000000)
 ```
 
