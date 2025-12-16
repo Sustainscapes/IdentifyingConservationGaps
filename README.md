@@ -634,7 +634,7 @@ TableDF <- readRDS("TableDF.rds")
 
 ForS2Table <- TableDF |> 
   dplyr::filter(!is.na(Subclasses)) |> 
-  dplyr::mutate(Total = ifelse(Total == 1, "Yes", NA),
+  dplyr::mutate(total = ifelse(Total == 1, "Yes", NA),
                 Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
                 Agriculture = ifelse(Agriculture == "INT_AGG", "Yes", NA),
                 Managed_Forest = ifelse(Subclasses == "Drevet Skov", "Yes", NA),
@@ -726,6 +726,7 @@ provides the labels that appear in the final table.
 ``` r
 
 scheme_vec <- c(
+  "total",
   "Natura2000",
   "ConservationOrders",
   "GameReservation",
@@ -739,6 +740,7 @@ scheme_vec <- c(
 )
 
 nice_vec <- c(
+  "total",
   "Natura 2000",
   "Conservation orders",
   "Game reserve",
@@ -770,6 +772,7 @@ one row per scheme and columns giving:
 
 | Scheme | Total | Total_of_DK_percent | Infrastructure_km2 | Infrastructure_of_scheme_percent | Agriculture_km2 | Agriculture_of_scheme_percent | Managed_forest_km2 | Managed_forest_of_scheme_percent |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| total | 6885.98 | 15.96 | 228.36 | 3.32 | 1206.49 | 17.52 | 541.17 | 7.86 |
 | Natura 2000 | 3878.62 | 8.99 | 146.47 | 3.78 | 862.31 | 22.23 | 447.44 | 11.54 |
 | Conservation orders | 1091.78 | 2.53 | 40.15 | 3.68 | 187.34 | 17.16 | 108.73 | 9.96 |
 | Game reserve | 439.61 | 1.02 | 9.10 | 2.07 | 44.61 | 10.15 | 2.73 | 0.62 |

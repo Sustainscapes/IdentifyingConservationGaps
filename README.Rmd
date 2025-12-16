@@ -586,7 +586,7 @@ TableDF <- readRDS("TableDF.rds")
 
 ForS2Table <- TableDF |> 
   dplyr::filter(!is.na(Subclasses)) |> 
-  dplyr::mutate(Total = ifelse(Total == 1, "Yes", NA),
+  dplyr::mutate(total = ifelse(Total == 1, "Yes", NA),
                 Infrastructure = ifelse(Infrastructure == 1, "Yes", NA),
                 Agriculture = ifelse(Agriculture == "INT_AGG", "Yes", NA),
                 Managed_Forest = ifelse(Subclasses == "Drevet Skov", "Yes", NA),
@@ -675,6 +675,7 @@ Finally, we apply `make_S2_line()` to each protection scheme of interest using `
 ```{r tablemake, message=FALSE, warning=FALSE}
 
 scheme_vec <- c(
+  "total",
   "Natura2000",
   "ConservationOrders",
   "GameReservation",
@@ -688,6 +689,7 @@ scheme_vec <- c(
 )
 
 nice_vec <- c(
+  "total",
   "Natura 2000",
   "Conservation orders",
   "Game reserve",
