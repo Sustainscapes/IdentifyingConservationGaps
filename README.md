@@ -19,10 +19,11 @@ land target**, distinguishing between:
 - areas requiring individual assessment,
 - areas with insufficient legal protection,
 - areas compromised by infrastructure, forestry, or agriculture, and
-- unprotected land.
+- areas without protection schemes.
 
 This README focuses on the spatial data processing steps used to derive
-the terrestrial map and summary statistics for Fig. 1.
+the terrestrial map and summary statistics for Fig. 1 and table S2 in
+the supplementary material.
 
 ## Software, packages and helper functions
 
@@ -37,13 +38,17 @@ packages:
 - [`geodata`](https://cran.r-project.org/package=geodata) to obtain the
   national boundary of Denmark.
 
-We also use [`stringr`](https://cran.r-project.org/package=stringr) for
-simple text wrapping in legend labels.
+We also use [`dplyr`](https://cran.r-project.org/package=dplyr) and
+[`purrr`](https://cran.r-project.org/package=purrr) for data
+manipulation and iteration,  
+[`stringr`](https://cran.r-project.org/package=stringr) for text
+wrapping in legend labels, and the GitHub package  
+[`BDRUtils`](https://github.com/derek-corcoran-barrios/BDRUtils)
+(BiodiversitetRåders utilities) for helper functions used in Table S2
+(notably `exclusivity_table()`).
 
-In addition, we define two small helper functions:
+In addition, we define a helper function:
 
-- `ToOne()` to read a raster from the `Data/` folder and convert all
-  non-`NA` values to 1 (presence/absence), and  
 - `write_cog()` to save a `SpatRaster` as a Cloud Optimized GeoTIFF
   (COG) using GDAL options for compression.
 
@@ -542,7 +547,7 @@ category_colors <- c(
 category_colors <- category_colors[cat_levels]
 
 ggplot() +
-  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/20) +
+  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/50) +
   scale_fill_manual(
     values   = category_colors,
     drop     = FALSE,
