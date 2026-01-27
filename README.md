@@ -109,6 +109,10 @@ Here, `BuildUp` is a raster where
 0 = built-up (infrastructure, urban areas),  
 1 = other land.
 
+Pixels classified as built-up (`BuildUp == 0`) are removed from layers
+intended to represent contributing protected areas, and are flagged as
+compromised where relevant (e.g. in the production/pressure layers).
+
 This raster is prepared in the data pre-processing steps (not shown
 here).
 
@@ -143,12 +147,19 @@ Park + private nature foundation; 111 = all three schemes).
 ### Approved Nature National Parks
 
 We read the raster of approved Nature National Parks and convert it to a
-binary layer where 0 = not an approved Nature National Park, 1 =
-approved Nature National Park.
+binary layer where:
+
+0 = not an approved Nature National Park,  
+1 = approved Nature National Park.
+
+In the original raster, Nature National Parks are coded as 0 and all
+other pixels are `NA`; these are recoded to a simple presence/absence
+layer.
 
 ``` r
-NNP_approved <- as.numeric(terra::rast("Data/Rast_Nature_National_Parks_Croped.tif")) + 1
-NNP_approved <- terra::ifel(is.na(NNP_approved), 0, NNP_approved)
+NNP_approved <- terra::rast("Data/Rast_Nature_National_Parks_Croped.tif")
+
+NNP_approved <- terra::ifel(!is.na(NNP_approved), 1, 0)
 ```
 
 ### Private nature foundations
@@ -556,7 +567,7 @@ category_colors <- c(
 category_colors <- category_colors[cat_levels]
 
 ggplot() +
-  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/50) +
+  geom_spatraster(data = FinalLayer, maxcell = ncell(FinalLayer)/30) +
   scale_fill_manual(
     values   = category_colors,
     drop     = FALSE,
