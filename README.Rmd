@@ -100,15 +100,16 @@ Area_DK <- terra::expanse(DK, unit = "km")
 ```
 
 
-Which is `r prettyNum((round(Area_DK, 2)), big.mark = ",")` square kilometers.
+This yields a total terrestrial area of `r prettyNum((round(Area_DK, 2)), big.mark = ",")` square kilometers.
 
-## Build up
+## Built-up areas
 
-In many of the layers we need to correct using buildup, which was extracted from the landcover layer in [basemap](envs.au.dk/en/research-areas/society-environment-and-resources/land-use-and-gis/basemap)
+To identify areas that genuinely contribute to the 30% target, we exclude built-up areas (infrastructure and urban land), which cannot contribute to biodiversity protection. Built-up areas were extracted from the land-cover layer in [basemap](https://envs.au.dk/en/research-areas/society-environment-and-resources/land-use-and-gis/basemap).
 
-Here, `BuildUp` is a raster where
-0 = built-up (infrastructure, urban areas),
-1 = other land.
+Here, `BuildUp` is a raster where  
+0 = built-up (infrastructure, urban areas),  
+1 = other land.  
+
 This raster is prepared in the data pre-processing steps (not shown here).
 
 ```{r readinBuildup}

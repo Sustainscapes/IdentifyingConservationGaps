@@ -95,17 +95,22 @@ We then calculate the terrestrial area of Denmark in square kilometres:
 Area_DK <- terra::expanse(DK, unit = "km")
 ```
 
-Which is 43,144.85 square kilometers.
+This yields a total terrestrial area of 43,144.85 square kilometers.
 
-## Build up
+## Built-up areas
 
-In many of the layers we need to correct using buildup, which was
-extracted from the landcover layer in
-[basemap](envs.au.dk/en/research-areas/society-environment-and-resources/land-use-and-gis/basemap)
+To identify areas that genuinely contribute to the 30% target, we
+exclude built-up areas (infrastructure and urban land), which cannot
+contribute to biodiversity protection. Built-up areas were extracted
+from the land-cover layer in
+[basemap](https://envs.au.dk/en/research-areas/society-environment-and-resources/land-use-and-gis/basemap).
 
-Here, `BuildUp` is a raster where 0 = built-up (infrastructure, urban
-areas), 1 = other land. This raster is prepared in the data
-pre-processing steps (not shown here).
+Here, `BuildUp` is a raster where  
+0 = built-up (infrastructure, urban areas),  
+1 = other land.
+
+This raster is prepared in the data pre-processing steps (not shown
+here).
 
 ``` r
 BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
