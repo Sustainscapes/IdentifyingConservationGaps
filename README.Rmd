@@ -118,17 +118,19 @@ BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
 
 
 
-## Protected areas contributing to the 30% target
+## Areas contributing to the 30% target
 
-In the manuscript, areas that **fully contribute** to the 30% land target are those protection schemes that meet all criteria C1–C5 for protected areas (Tables 1 and 5 in the manuscript). On land, these are:
+In fig 1, areas that **fully contribute** to the 30% land target are shown in turqouise (protected areas). These areas encompass areas under protection schemes with no landuses compromising biodiversity and that meet all criteria C1–C5 for protected areas (Table 1 in the manuscript). 
+
+On land, these are:
 
 * **Approved Nature National Parks**
 * **Areas owned by private nature foundations**
 * **State-owned unmanaged / untouched forests**
 
-Below we show how these layers are read, harmonised and combined into a single raster representing all areas that contribute to the 30% terrestrial target.
+Below we show how these layers are read, harmonised and combined into a single raster representing all terrestrial areas that contribute to the 30% target.
 
-To track overlaps between protection schemes, each scheme is encoded as a binary layer with a **distinct base value** (1, 10, 100). When these layers are summed, each combination of schemes yields a unique value (e.g. 1 = Nature National Park only; 11 = Nature National Park + private foundation; 111 = all three schemes).
+To track overlaps between protection schemes, each scheme is encoded as a binary layer with a **distinct base value** (Nature National Park = 1, Private Nature Foundations = 10, State-owned Unmanaged Forests = 100). When these layers are summed, each combination of schemes yields a unique value (e.g. 1 = Nature National Park only; 11 = Nature National Park + private nature foundation; 111 = all three schemes).
 
 ### Approved Nature National Parks
 
