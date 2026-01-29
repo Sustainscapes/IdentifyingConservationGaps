@@ -174,7 +174,7 @@ Fondsejede <- as.numeric(terra::rast("Data/Rast_Fondsejede_Croped.tif")) + 10
 Fondsejede <- terra::ifel(is.na(Fondsejede), 0, Fondsejede)
 ```
 
-### Unmanaged / untouched forests
+### State-owned Unmanaged / untouched forests
 
 We then read the raster of state-owned unmanaged / untouched forests
 (`UroertSkov_NST`) and encode it as
@@ -187,7 +187,7 @@ UroertSkov_NST <- as.numeric(terra::rast("Data/Rast_Urort_Skov_Croped.tif")) + 9
 UroertSkov_NST <- terra::ifel(is.na(UroertSkov_NST), 0, UroertSkov_NST)
 ```
 
-### Generate composite layer of contributing protected areas
+### Generate composite layer
 
 We now add the three layers to obtain a **composite raster** `PA30`,
 where the value of each pixel uniquely identifies which combination of
