@@ -2,7 +2,7 @@ cff-version: 1.2.0
 title: "IdentifyingConservationGaps: data and R code for Denmark terrestrial protection analyses (Fig. 1, Table S2)"
 version: 1.0.0
 license: "MIT"
-type: software
+type: dataset
 abstract: "Data processing scripts and R workflows to reproduce the terrestrial analyses, Fig. 1 map, and Table S2 reported in the supplementary material for 'Identifying Conservation Gaps: A Framework for Evaluating National Contributions to the 30x30 Target'."
 message: "If you use this repository, please cite it using the metadata in this CITATION.cff file."
 authors:
@@ -43,12 +43,14 @@ authors:
     family-names: Rahbek
     affiliation: "The Danish Biodiversity Council; Center for Macroecology, Evolution and Climate, GLOBE Institute, University of Copenhagen"
 keywords:
-  - biodiversity
-  - conservation planning
-  - protected areas
+  - protected areas effectiveness
+  - 30 by 30 target
   - 30x30
+  - EU Biodiversity Strategy
+  - Natura 2000
+  - conservation effectiveness
   - Denmark
+  - terrestrial protected areas
   - spatial analysis
-  - R
-  - terra
   - reproducible research
+
