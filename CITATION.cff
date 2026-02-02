@@ -1,20 +1,20 @@
 cff-version: 1.2.0
-title: "IdentifyingConservationGaps: data and R code for Denmark terrestrial protection analyses (Fig. 1, Table S2)"
+title: "Identifying Conservation Gaps: data and R code for Denmark terrestrial protection analyses (Fig. 1, Table S2)"
 version: 1.0.0
 license: "MIT"
 type: dataset
-abstract: "Data processing scripts and R workflows to reproduce the terrestrial analyses, Fig. 1 map, and Table S2 reported in the supplementary material for 'Identifying Conservation Gaps: A Framework for Evaluating National Contributions to the 30x30 Target'."
+abstract: "Data processing scripts and R workflows to reproduce the terrestrial analyses, Fig. 1, reported in the article 'Identifying Conservation Gaps: A Framework for Evaluating National Contributions to the 30x30 Target' and  Table S2 in the supplementary material for."
 message: "If you use this repository, please cite it using the metadata in this CITATION.cff file."
 authors:
+  - given-names: Derek
+    family-names: Corcoran
+    affiliation: "Department of Biology, Ecoinformatics and Biodiversity, Aarhus University; SustainScapes – Center for Sustainable Landscapes under Global Change, Aarhus University"
   - given-names: Pil Birkefeldt Møller
     family-names: Pedersen
     affiliation: "Department of Biology, Ecoinformatics and Biodiversity, Aarhus University; SustainScapes – Center for Sustainable Landscapes under Global Change, Aarhus University"
   - given-names: Anders H.
     family-names: Petersen
     affiliation: "Center for Macroecology, Evolution and Climate, GLOBE Institute, University of Copenhagen"
-  - given-names: Derek
-    family-names: Corcoran
-    affiliation: "Department of Biology, Ecoinformatics and Biodiversity, Aarhus University; SustainScapes – Center for Sustainable Landscapes under Global Change, Aarhus University"
   - given-names: Niels
     family-names: Madsen
     affiliation: "The Danish Biodiversity Council; Department of Chemistry and Bioscience, Section of Environmental Biomonitoring, Aalborg University"
@@ -36,12 +36,12 @@ authors:
   - given-names: Niels
     family-names: Strange
     affiliation: "The Danish Biodiversity Council; Department of Food and Resource Economics, University of Copenhagen"
-  - given-names: Signe
-    family-names: Normand
-    affiliation: "The Danish Biodiversity Council; Department of Biology, Aarhus University; SustainScapes – Center for Sustainable Landscapes under Global Change, Aarhus University"
   - given-names: Carsten
     family-names: Rahbek
     affiliation: "The Danish Biodiversity Council; Center for Macroecology, Evolution and Climate, GLOBE Institute, University of Copenhagen"
+  - given-names: Signe
+    family-names: Normand
+    affiliation: "The Danish Biodiversity Council; Department of Biology, Aarhus University; SustainScapes – Center for Sustainable Landscapes under Global Change, Aarhus University"
 keywords:
   - protected areas effectiveness
   - 30 by 30 target

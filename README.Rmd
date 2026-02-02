@@ -216,15 +216,15 @@ This layer corresponds to the **turquoise category** (“Protected areas that fu
 
 ## Production areas (areas compromising biodiversity)
 
-In Fig. 1, areas where biodiversity is directly compromised by human land uses (e.g. intensive agriculture, production forestry, infrastructure) are shown in **orange** (“Areas compromised by infrastructure, forestry, or agriculture”).
+In Fig. 1, areas under protection schemes where biodiversity is directly compromised by human land uses (e.g. intensive agriculture, production forestry, infrastructure) are shown in **orange** (“Areas compromised by infrastructure, forestry, or agriculture”).
 
 These areas are identified by combining:
 
-* agricultural land (fields in rotation and permanent grasslands not covered by Article 3 protection),
-* production forest (tree-covered areas not designated as unmanaged forest or Article 3 areas), and
+* agricultural land (fields in rotation and permanent grasslands not covered by section 3 protection CF. Nature protection act),
+* production forest (tree-covered areas not designated as unmanaged forest or section 3 protection CF. Nature protection act), and
 * infrastructure (roads, buildings and other built-up areas).
 
-In the analysis pipeline, these inputs are assembled into a raster layer where pixels used primarily for these land uses are flagged as **compromised** and subsequently excluded from contributing to the 30% target. The resulting raster is then used to derive the orange category in Fig. 1.
+These areas compromising biodiversity are identified for each protection scheme. These areas are combined into a resulting raster that is then used to derive the orange category in fig. 1.
 
 ### Reading and combining the layers
 
