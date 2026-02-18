@@ -251,11 +251,14 @@ used to derive the orange category in fig. 1.
 
 ### Reading and combining the layers
 
-We use a raster (`Subclasses`) which classifies the areas that are
-within at least one protection scheme, that includes, among others,
-fields in rotation (`"INT_AGG"`), grasslands not covered by Article 3
-protection (`"PGR_out_of_P3"`), and production forest (`"Drevet Skov"`).
-We merge these classes into a single layer of production areas.
+We use a raster (`Subclasses`) that identifies areas falling within at
+least one mapped protection scheme. Some of these schemes allow
+continued agricultural or forestry production, such as fields in
+rotation (`INT_AGG`), grasslands not covered by Article 3 protection
+(`PGR_out_of_P3`), and production forest (`Drevet Skov`). Although
+formally included within protection schemes, these areas still function
+as production landscapes and are therefore merged into a single layer of
+production/compromised areas.
 
 ``` r
 Subclasses<- rast("Data/Subclasses.tif")
@@ -266,9 +269,11 @@ ProductionAreas <- terra::ifel(Subclasses %in% c("Drevet Skov", "INT_AGG", "PGR_
 ```
 
 We then add built-up areas (from `BuildUp`, read above). Pixels that are
-both within the `Subclasses` (this means that is part of some protection
-scheme) raster and classified as built-up (`BuildUp == 0`) are also
-flagged as production / compromised areas.
+both within the `Subclasses` raster (i.e., part of at least one mapped
+protection scheme) and classified as built-up (`BuildUp == 0`) are also
+flagged as production/compromised areas. In other words, built-up areas
+override any protection designation and are always classified as
+production.
 
 ``` r
 ProductionAreas <- terra::ifel(!is.na(Subclasses) & BuildUp == 0, 1, ProductionAreas)
@@ -286,7 +291,8 @@ GeoTIFF:
 write_cog(ProductionAreas, "FinalLayers/ProductionAreas.tif")
 ```
 
-This layer underpins the **orange category** in Fig. 1.
+This layer corresponds to the production/compromised category used in
+the main classification and visualised in Fig. 1.
 
 ## Insufficient legal protection
 
