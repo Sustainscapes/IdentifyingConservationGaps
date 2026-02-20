@@ -273,7 +273,7 @@ To operationalise this, we identify areas that:
 
 Pixels meeting all three conditions form the “insufficient legal protection” category (yellow in Fig. 1).
 
-### Identifying private Article 3 areas with a single protection scheme
+### Identifying private Section 3 areas with a single protection scheme
 
 First, we read a raster that records how many protection schemes apply to each pixel:
 
@@ -284,7 +284,7 @@ NumberOfProtections <- terra::rast("Data/Rast_NumberOfProtections_Croped.tif")
 NumberOfProtections <- terra::ifel(NumberOfProtections != 1, 0, NumberOfProtections)
 ```
 
-Next, we read the Article 3 protection raster. In our case this layer is stored on a shared drive; the path should be adapted to your local setup. We convert it to a binary layer where 1 indicates Article 3 protection and 0 indicates “unknown” or lakes.
+Next, we read the Section 3 protection raster. In our case this layer is stored on a shared drive; the path should be adapted to your local setup. We convert it to a binary layer where 1 indicates Article 3 protection and 0 indicates “unknown” or lakes.
 
 ```{r ILP_P3, eval = FALSE}
 P3 <- terra::rast("Data/Rast_p3_Croped.tif")
