@@ -261,17 +261,14 @@ This layer corresponds to the production/compromised category used in the main c
 
 ## Insufficient legal protection
 
-Areas under protection schemes that do not meet the criteria for long-term legal protection (Criterion C1) or other key criteria (C2–C5) are classified as having **insufficient legal protection**.
+Areas under protection schemes that do not meet the criteria for long-term legal protection (Criterion C1) or other key criteria (C2–C5) are classified as **insufficient legal protection** (yellow in Fig. 1).
 
-On land, this primarily concerns **private Article 3 areas**, where:
-
-* long-term protection is not secured, and
-* there are no management requirements preventing habitat changes that would undermine biodiversity values (e.g. succession from open habitats to forest).
+On land, this primarily concerns **private areas protected under Section 3 of the Danish Nature Protection Act**. This protection scheme mainly covers open habitats (e.g. meadows, heaths, and wetlands) and does not include forest habitats. On privately owned land, there are no mandatory management requirements to maintain these open habitats. As a result, many areas may gradually transition to forest through natural succession and effectively “grow out” of protection, undermining long-term biodiversity conservation.
 
 To operationalise this, we identify areas that:
 
 1. are covered by **exactly one** protection scheme,
-2. fall under the **Article 3** protection scheme, and
+2. fall under **Section 3 protection** (Nature Protection Act), and  
 3. are on **privately owned** land.
 
 Pixels meeting all three conditions form the “insufficient legal protection” category (yellow in Fig. 1).
