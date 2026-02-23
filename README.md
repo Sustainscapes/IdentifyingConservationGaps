@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# IdentifyingConservationGaps
+# The Terrestrial Conservation Gap: Workflow and geospatial outcome for the Danish contribution to the 30% Target
 
 <!-- badges: start -->
 
