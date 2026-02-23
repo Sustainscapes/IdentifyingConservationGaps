@@ -228,7 +228,7 @@ These areas compromising biodiversity are identified for each protection scheme.
 
 ### Reading and combining the layers
 
-We use a raster (`Subclasses`) that identifies areas falling within at least one mapped protection scheme. Some of these schemes allow continued agricultural or forestry production, such as fields in rotation (`INT_AGG`), grasslands not covered by Article 3 protection (`PGR_out_of_P3`), and production forest (`Drevet Skov`). Although formally included within protection schemes, these areas still function as production landscapes and are therefore merged into a single layer of production/compromised areas.
+We use a raster (`Subclasses`) that identifies areas falling within at least one mapped protection scheme. Some of these schemes allow continued agricultural or forestry production, such as fields in rotation (`INT_AGG`), grasslands not covered by Section 3 protection (`PGR_out_of_P3`), and production forest (`Drevet Skov`). Although formally included within protection schemes, these areas still function as production landscapes and are therefore merged into a single layer of production/compromised areas.
 
 
 ```{r productionForest, eval=FALSE}
@@ -284,21 +284,21 @@ NumberOfProtections <- terra::rast("Data/Rast_NumberOfProtections_Croped.tif")
 NumberOfProtections <- terra::ifel(NumberOfProtections != 1, 0, NumberOfProtections)
 ```
 
-Next, we read the Section 3 protection raster. In our case this layer is stored on a shared drive; the path should be adapted to your local setup. We convert it to a binary layer where 1 indicates Article 3 protection and 0 indicates “unknown” or lakes.
+Next, we read the Section 3 protection raster. We convert it to a binary layer where 1 indicates Section 3 protection and 0 indicates “unknown” or lakes.
 
 ```{r ILP_P3, eval = FALSE}
 P3 <- terra::rast("Data/Rast_p3_Croped.tif")
 P3 <- as.numeric(P3)
 
 # Remove both unknown (ukendt) and lakes (Soer):
-# 0–3, 5  = Article 3 categories kept as 1
+# 0–3, 5  = Section 3 categories kept as 1
 # 4, 6    = set to 0 (e.g. lakes, unknown)
 P3 <- terra::ifel(P3 %in% c(0:3, 5), 1, P3)
 P3 <- terra::ifel(P3 %in% c(4, 6), 0, P3)
 P3 <- terra::ifel(is.na(P3), 0, P3)
 ```
 
-We then read in the ownership data, convert it to a binary “private vs. other” layer, and resample it to match the resolution and extent of the Article 3 raster:
+We then read in the ownership data, convert it to a binary “private vs. other” layer, and resample it to match the resolution and extent of the Section 3 raster:
 
 ```{r ILP_Ownership, eval = FALSE}
 Ownership <- terra::rast("Data/Ownership2025.tif")
@@ -315,7 +315,7 @@ Private <- terra::resample(Private, P3, method = "near")
 Finally, we multiply the three binary layers to obtain areas that:
 
 * are only protected by a single scheme (NumberOfProtections == 1),
-* are Article 3 areas (P3 == 1), and
+* are Section 3 areas (P3 == 1), and
 * are privately owned (Private == 1).
 
 These pixels are then masked to the Denmark polygon and labelled:
@@ -344,11 +344,11 @@ This layer corresponds to the **yellow category** (“Insufficient legal protect
 
 ## Requires individual assessment
 
-Some protection schemes cannot be fully evaluated with the available information (for example, because management prescriptions or long-term legal guarantees are not consistently documented at the ecosystem level). For these cases, the criteria C1–C5 cannot be conclusively assessed.
+Some protection schemes cannot be fully evaluated with the available information (for example, because management prescriptions or long-term legal guarantees are not consistently documented). In these cases, criteria C1–C5 cannot be assessed conclusively using spatial data alone.
 
-In the manuscript, areas that **require individual assessment** primarily include:
+In the manuscript, areas that **require individual assessment** are those where the available spatial data do not allow us to evaluate criteria C1–C5 conclusively.
 
-Pixels that fall inside a protection scheme and that are not already classified as fully contributing protected areas, production areas or insufficient legal protection, are placed in the “requires individual assessment” category (lavender in Fig. 1).
+Operationally, we classify pixels as “requires individual assessment” if they fall within a mapped protection scheme and are not already classified as fully contributing protected areas, production/compromised areas, or insufficient legal protection.
 
 ### Identifying areas that require individual assessment
 
@@ -378,7 +378,7 @@ This binary raster (`RIA == 1`) corresponds to the **lavender category** (“Req
 
 ## Harmonised final protection layer and category prioritisation
 
-The protection categories described above are not mutually exclusive: a given pixel can belong to more than one scheme (for example, a Natura 2000 site that is also an Article 3 area). To produce the final map in Fig. 1, we therefore create a **harmonized categorical raster** in which each pixel is assigned to a single category, following a fixed priority order:
+The protection categories described above are not mutually exclusive: a given pixel can belong to more than one scheme (for example, a Natura 2000 site that is also an Section 3 area). To produce the final map in Fig. 1, we therefore create a **harmonized categorical raster** in which each pixel is assigned to a single category, following a fixed priority order:
 
 1. **Protected areas** (fully contributing to the 30% target)
 2. **Production areas** (areas where biodiversity is compromised by land use)
@@ -414,7 +414,7 @@ FinalLayer[!is.na(PA30)] <- 1
 # 2: Production areas (where biodiversity is compromised)
 FinalLayer[ProductionAreas == 1 & FinalLayer == 0] <- 2
 
-# 3: Insufficient legal protection (private Article 3, single-scheme protection)
+# 3: Insufficient legal protection (private Section 3, single-scheme protection)
 FinalLayer[Private_P3 == 1 & FinalLayer == 0] <- 3
 
 # 4: Requires individual assessment (remaining schemes with incomplete information)
