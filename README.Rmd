@@ -35,7 +35,7 @@ Fig. 1 shows how Denmark’s terrestrial areas contribute to the **30% land targ
 * areas compromised by infrastructure, forestry, or agriculture, and
 * areas without protection schemes.
 
-This README focuses on the spatial data processing steps used to derive the terrestrial map and summary statistics for Fig. 1 and table S2 in the supplementary material.
+This README documents the spatial data processing workflow used to derive the terrestrial map and summary statistics presented in Fig. 1 and Table S2 of the manuscript. in the supplementary material.
 
 
 ## Software, packages and helper functions
@@ -100,7 +100,7 @@ Area_DK <- terra::expanse(DK, unit = "km")
 ```
 
 
-This yields a total terrestrial area of `r prettyNum((round(Area_DK, 2)), big.mark = ",")` square kilometers.
+This yields a total terrestrial area of `r prettyNum((round(Area_DK, 2)), big.mark = ",")` km².
 
 ## Built-up areas
 
@@ -121,7 +121,7 @@ BuildUp <- terra::rast("Data/Rast_BuildUp_Croped.tif")
 
 ## Areas contributing to the 30% target
 
-In fig 1, areas that **fully contribute** to the 30% land target are shown in turqouise (protected areas). These areas encompass areas under protection schemes with no landuses compromising biodiversity and that meet all criteria C1–C5 for protected areas (Table 1 in the manuscript). 
+In Fig. 1, areas that **fully contribute** to the 30% land target are shown in turquoise (protected areas). These areas encompass areas under protection schemes with no landuses compromising biodiversity and that meet all criteria C1–C5 for protected areas (Table 1 in the manuscript). 
 
 On land, these are:
 
@@ -224,7 +224,7 @@ These areas are identified by combining:
 * production forest (tree-covered areas not designated as unmanaged forest or section 3 protection CF. Nature protection act), and
 * infrastructure (roads, buildings and other built-up areas).
 
-These areas compromising biodiversity are identified for each protection scheme. These areas are combined into a resulting raster that is then used to derive the orange category in fig. 1.
+These biodiversity-compromising areas are identified for each protection scheme and combined into a single raster used to derive the production category in Fig. 1.
 
 ### Reading and combining the layers
 
@@ -352,9 +352,9 @@ Operationally, we classify pixels as “requires individual assessment” if the
 
 ### Identifying areas that require individual assessment
 
-We use the Subclasses layer to identify pixels that are inside and out of the protection schemes and transform it into a binary layer, that we will later used to build a harmonized layer
+We use the `Subclasses` layer to identify pixels that fall within at least one mapped protection scheme and transform it into a binary layer that we will later use to build the harmonised classification.
 
-Any pixel within the protection schemes will be considered a candidate to be in the **requires individual assessment** category.
+Any pixel within the protection schemes will be considered a candidate for being in the **requires individual assessment (RIA)** category.
 
 ```{r RIA_combine, eval = FALSE}
 RIA <- terra::ifel(!is.na(Subclasses), 1, 0)
@@ -374,11 +374,10 @@ Finally, we save this layer as a Cloud Optimised GeoTIFF:
 write_cog(RIA, "FinalLayers/RequiresIndividualAssessment.tif")
 ```
 
-This binary raster (`RIA == 1`) corresponds to the **lavender category** (“Requires individual assessment”) in Fig. 1 of the manuscript.
 
 ## Harmonised final protection layer and category prioritisation
 
-The protection categories described above are not mutually exclusive: a given pixel can belong to more than one scheme (for example, a Natura 2000 site that is also an Section 3 area). To produce the final map in Fig. 1, we therefore create a **harmonized categorical raster** in which each pixel is assigned to a single category, following a fixed priority order:
+The protection categories described above are not mutually exclusive: a given pixel can belong to more than one scheme (for example, a Natura 2000 site that is also a Section 3 area). To produce the final map in Fig. 1, we therefore create a **harmonized categorical raster** in which each pixel is assigned to a single category, following a fixed priority order:
 
 1. **Protected areas** (fully contributing to the 30% target)
 2. **Production areas** (areas where biodiversity is compromised by land use)
@@ -444,8 +443,7 @@ This **categorical raster** is the basis for the map and the pie chart shown in 
 
 ## Area and proportions of protection categories
 
-This section computes the total area and percentage of land in each protection category defined in `FinalLayer`.
-Proportions are calculated relative to the total area of **all land cells** (categories 1–5), excluding category 0 (“No protection / no data”).
+This section computes the total area (km²) and share (percentage) of Denmark’s terrestrial area in each category defined in `FinalLayer`. Proportions are calculated relative to Denmark’s total terrestrial area (`Area_DK`).
 
 ```{r readfinal, include=FALSE}
 FinalLayer <- terra::rast("FinalLayers/FinalLayer.tif")
@@ -485,7 +483,7 @@ knitr::kable(
 ```
 
 
-This table mirrors the proportions shown in **Fig. 1**, with small differences due to rounding.
+This table reproduces the proportions shown in the doughnut chart in Fig. 1, with small differences due to rounding.
 
 ## Map of terrestrial protection categories
 
@@ -534,16 +532,16 @@ ggplot() +
 
 ## Generation of Table S2
 
-Table S2 in the manuscript summarises, for each protection scheme:
-
-- its total area in Denmark (km² and % of Denmark), and  
+Table S2 in the supplementary material summarises, for each protection scheme:
+  
+  - its total area in Denmark (km² and % of Denmark), and  
 - the area and percentage of that scheme that overlaps with  
-  **(i)** infrastructure,  
-  **(ii)** agriculture, and  
-  **(iii)** managed forest.
+**(i)** infrastructure,  
+**(ii)** agriculture, and  
+**(iii)** managed forest (i.e. production forest).
 
 To derive this table we:
-
+  
 1. build a multi-layer raster stack with all relevant schemes and pressures,  
 2. use `terra::crosstab()` to count how many pixels fall in each combination,  
 3. convert pixel counts to area in km², and  
@@ -586,13 +584,14 @@ saveRDS(TableDF, "TableDF.rds")
 
 The helper function `BDRUtils::exclusivity_table()` expects:
 
-- one column per scheme / pressure, coded as `"Yes"` or `NA`, and  
+- one column per protection scheme or pressure, coded as `"Yes"` or `NA`, and  
 - a column called `Area_sq_Km` giving the area of each row in km².
 
 Because all rasters are at **10 m × 10 m** resolution, each pixel represents  
 \(100 \, \text{m}^2 = 0.0001 \, \text{km}^2\). We therefore convert `n` pixels to km² as `n * 100 / 1e6`.
 
-We restrict the analysis to pixels that fall inside at least one protection subclass (i.e. `Subclasses` is not `NA`), and then create `"Yes"/NA` dummies for each variable we want to use in S2:
+We restrict the analysis to pixels that fall inside at least one protection scheme (i.e. `Subclasses` is not `NA`), and then create `"Yes"/NA` indicators for each variable used in Table S2:
+
 
 
 ```{r prepdata}
@@ -728,7 +727,7 @@ readr::write_csv(S2_body, "Table_S2.csv")
 
 `S2_body` reproduces the structure of Table S2 in the manuscript, with one row per scheme and columns giving:
 
-- total area (square kilometers and percentage of Denmark), and  
+- total area (km² and percentage of Denmark), and  
 - area and percentage of each scheme overlapped by infrastructure, agriculture and managed forest.
 
 ```{r, echo=FALSE}
