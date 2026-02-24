@@ -1,112 +1,63 @@
 cff-version: 1.2.0
-title: "Identifying the Terrestrial Conservation Gap: Workflow and geospatial outcome for the Danish contribution to the 30% Target"
-version: 1.0.0
-date-released: 2026-02-24
-type: dataset
-repository-code: "[https://github.com/Sustainscapes/IdentifyingConservationGaps/](https://github.com/Sustainscapes/IdentifyingConservationGaps/)"
-license: MIT
-
 message: "If you use this repository, please cite it using the metadata in this CITATION.cff file."
-
-abstract: >
-Workflow, geospatial outputs, and R scripts used to reproduce the terrestrial analyses
-and geospatial outcome for Denmark’s contribution to the 30% land target, including
-Fig. 1 and Table S2 in the manuscript 'Identifying Conservation Gaps: A Framework for
-Evaluating National Contributions to the 30x30 Target'.
-
-keywords:
-
-* protected areas effectiveness
-* 30 by 30 target
-* 30x30
-* EU Biodiversity Strategy
-* Natura 2000
-* conservation effectiveness
-* Denmark
-* terrestrial protected areas
-* spatial analysis
-* reproducible research
-
-authors:
-
-* given-names: Derek
-  family-names: Corcoran
-  email: "[derek.corcoran@bio.au.dk](mailto:derek.corcoran@bio.au.dk)"
-  affiliation: "Secretariat of the Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Department of Biology, Section for Ecoinformatics and Biodiversity, Aarhus University, DK-8000 Aarhus C, Denmark; Center for Sustainable Landscapes under Global Change (SustainScapes), Department of Biology, Aarhus University, DK-8000 Aarhus C, Denmark"
-* given-names: Pil Birkefeldt Møller
-  family-names: Pedersen
-  affiliation: "Secretariat of the Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Department of Biology, Section for Ecoinformatics and Biodiversity, Aarhus University, DK-8000 Aarhus C, Denmark; Center for Sustainable Landscapes under Global Change (SustainScapes), Department of Biology, Aarhus University, DK-8000 Aarhus C, Denmark"
-* given-names: Anders H.
-  family-names: Petersen
-  affiliation: "Secretariat of the Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Center for Macroecology, Evolution and Climate, GLOBE Institute, University of Copenhagen, DK-2100 Copenhagen O, Denmark"
-* given-names: Mads
-  family-names: Gammelgaard
-  affiliation: "Secretariat of the Danish Biodiversity Council, DK-8000 Aarhus C, Denmark"
-* given-names: Niels
-  family-names: Madsen
-  affiliation: "The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Department of Chemistry and Bioscience, Section of Environmental Biomonitoring, Aalborg University, DK-9220 Aalborg, Denmark"
-* given-names: Jens-Christian
-  family-names: Svenning
-  affiliation: "The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Center for Ecological Dynamics in a Novel Biosphere (ECONOVO), Department of Biology, Aarhus University, DK-8000 Aarhus C, Denmark"
-* given-names: Karen
-  family-names: Timmermann
-  affiliation: "The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Section for Coastal Ecology, DTU Aqua, Technical University of Denmark, DK-2800 Kgs. Lyngby, Denmark"
-* given-names: Berit C.
-  family-names: Kaae
-  affiliation: "The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Department of Geosciences and Natural Resource Management, University of Copenhagen, DK-1958 Frederiksberg C, Denmark"
-* given-names: Theis
-  family-names: Kragh
-  affiliation: "The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Department of Biology, University of Southern Denmark, DK-5230 Odense M, Denmark"
-* given-names: Birgitte Egelund
-  family-names: Olsen
-  affiliation: "The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Department of Law, BSS, Aarhus University, DK-8000 Aarhus C, Denmark"
-* given-names: Niels
-  family-names: Strange
-  affiliation: "Center for Macroecology, Evolution and Climate, GLOBE Institute, University of Copenhagen, DK-1958 Frederiksberg C, Denmark; Department of Food and Resource Economics, Faculty of Science, University of Copenhagen, DK-1958 Frederiksberg C, Denmark"
-* given-names: Carsten
-  family-names: Rahbek
-  affiliation: "Center for Macroecology, Evolution and Climate, GLOBE Institute, University of Copenhagen, DK-2100 Copenhagen, Denmark; The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Center for Global Mountain Biodiversity, GLOBE Institute, University of Copenhagen, DK-2100 Copenhagen, Denmark; Department of Biology, University of Southern Denmark, DK-5230 Odense M, Denmark"
-* given-names: Signe
-  family-names: Normand
-  affiliation: "Department of Biology, Section for Ecoinformatics and Biodiversity, Aarhus University, DK-8000 Aarhus C, Denmark; Center for Sustainable Landscapes under Global Change (SustainScapes), Department of Biology, Aarhus University, DK-8000 Aarhus C, Denmark; The Danish Biodiversity Council, DK-8000 Aarhus C, Denmark; Center for Global Mountain Biodiversity, GLOBE Institute, University of Copenhagen, DK-2100 Copenhagen, Denmark"
-
-funding:
-
-* name: "Danish Biodiversity Council"
-* name: "SustainScapes – Center for Sustainable Landscapes under Global Change"
-  description: "Funded by the Novo Nordisk Foundation (grant NNF20OC0059595)"
-
-preferred-citation:
-type: dataset
 title: "Identifying the Terrestrial Conservation Gap: Workflow and geospatial outcome for the Danish contribution to the 30% Target"
+abstract: >-
+  Workflow, geospatial outputs, and R scripts used to reproduce the terrestrial analyses
+  and geospatial outcome for Denmark’s contribution to the 30% land target, including
+  Fig. 1 and Table S2 in the manuscript "Identifying Conservation Gaps: A Framework for
+  Evaluating National Contributions to the 30x30 Target".
 authors:
-- family-names: Corcoran
-given-names: Derek
-- family-names: Pedersen
-given-names: Pil Birkefeldt Møller
-year: 2026
-
-notes: >
-Equal contribution: Derek Corcoran and Pil Birkefeldt Møller Pedersen contributed equally.
-Additional equal contribution: Carsten Rahbek and Signe Normand contributed equally.
-
-Acknowledgements: We would like to thank the Secretariat of the Danish Biodiversity Council
-for support and graphical designer Aleksandrina Leonidova Mitseva for finalizing the design
-of the figures and tables. We also thank the following institutions helping us retrieve
-relevant data for the analyses: The Danish Nature Agency, the Danish Environmental Protection
-Agency, The Danish Ministry of the Environment, The Ministry of Food, Agriculture, and
-Fisheries of Denmark, private nature foundations (Denmark`s Nature Fund, The foundation Kaj
-Kjær Flora & Fauna, The Bikuben Foundation, Danish Botanical Association, The Danish Nature
-Fund, Aage V. Jensen Nature Foundation, Lille Vildmose Nature Fund).
-
-CRediT authorship contribution statement:
-Conceptualization: PBMP, DC, AHP, SN, CR, KT, NM, JCS;
-Data curation: PBMP, AHP, DC, MG;
-Formal analysis: PBMP, AHP, DC, SN, CR, NM, KT, JCS;
-Funding acquisition: SN;
-Investigation: PBMP, AHP, DC;
-Methodology: PBMP, AHP, DC, SN, CR, KT, NM, JCS, MG;
-Software: PBMP, AHP, DC, MG;
-Validation: All;
-Writing – original draft: DC, PBMP;
-Writing – review & editing: All.
+  - family-names: Corcoran
+    given-names: Derek
+    email: derek.corcoran@bio.au.dk
+    affiliation: "Secretariat of the Danish Biodiversity Council; Aarhus University (SustainScapes & Ecoinformatics and Biodiversity)"
+  - family-names: Pedersen
+    given-names: Pil Birkefeldt Møller
+    affiliation: "Secretariat of the Danish Biodiversity Council; Aarhus University (SustainScapes & Ecoinformatics and Biodiversity)"
+  - family-names: Petersen
+    given-names: Anders H.
+    affiliation: "Secretariat of the Danish Biodiversity Council; University of Copenhagen (Center for Macroecology, Evolution and Climate)"
+  - family-names: Gammelgaard
+    given-names: Mads
+    affiliation: "Secretariat of the Danish Biodiversity Council"
+  - family-names: Madsen
+    given-names: Niels
+    affiliation: "The Danish Biodiversity Council; Aalborg University"
+  - family-names: Svenning
+    given-names: Jens-Christian
+    affiliation: "The Danish Biodiversity Council; Aarhus University (ECONOVO)"
+  - family-names: Timmermann
+    given-names: Karen
+    affiliation: "The Danish Biodiversity Council; Technical University of Denmark (DTU Aqua)"
+  - family-names: Kaae
+    given-names: Berit C.
+    affiliation: "The Danish Biodiversity Council; University of Copenhagen (Geosciences and Natural Resource Management)"
+  - family-names: Kragh
+    given-names: Theis
+    affiliation: "The Danish Biodiversity Council; University of Southern Denmark"
+  - family-names: Olsen
+    given-names: Birgitte Egelund
+    affiliation: "The Danish Biodiversity Council; Aarhus University (Department of Law)"
+  - family-names: Strange
+    given-names: Niels
+    affiliation: "University of Copenhagen (CMEC & Department of Food and Resource Economics)"
+  - family-names: Rahbek
+    given-names: Carsten
+    affiliation: "University of Copenhagen (CMEC & Center for Global Mountain Biodiversity); The Danish Biodiversity Council; University of Southern Denmark"
+  - family-names: Normand
+    given-names: Signe
+    affiliation: "Aarhus University (SustainScapes & Ecoinformatics and Biodiversity); The Danish Biodiversity Council; University of Copenhagen (CGMB)"
+version: 1.0.0
+date-released: "2026-02-24"
+license: MIT
+repository-code: "https://github.com/Sustainscapes/IdentifyingConservationGaps/"
+type: dataset
+keywords:
+  - "protected areas effectiveness"
+  - "30 by 30 target"
+  - "30x30"
+  - "EU Biodiversity Strategy"
+  - "Natura 2000"
+  - "Denmark"
+  - "spatial analysis"
+  - "reproducible research"
